@@ -125,22 +125,27 @@ var defaultParams = function(serviceName, opType, appId) {
 
 
 
-var ebayApiGetRequest = function(serviceName, opType, appId, params, filters, callback) {
-  var reqOptions = {
-    // headers: {},
-  };
-  
-  if (serviceName === 'MerchandisingService') {
-    reqOptions.decoding = 'buffer';   // otherwise fails to decode json. doesn't seem to be necessary w/ FindingService.
+// make a single GET request to a service
+var ebayApiGetRequest = function(options, callback) {
+  if (! options.serviceName) return callback(new Error("Missing serviceName"));
+  if (! options.opType) return callback(new Error("Missing opType"));
+  if (! options.appId) return callback(new Error("Missing appId"));
+  options.params = options.params || {}; 
+  options.filters = options.filters || {};
+  options.reqOptions = options.reqOptions || {};
+  options.parser = options.parser || parseItemsFromResponse;
+    
+  if (options.serviceName === 'MerchandisingService') {
+    options.reqOptions.decoding = 'buffer';   // otherwise fails to decode json. doesn't seem to be necessary w/ FindingService.
   }
   
-  _.defaults(params, defaultParams(serviceName, opType, appId));
+  _.defaults(options.params, defaultParams(options.serviceName, options.opType, options.appId));
   
-  var url = buildRequestUrl(serviceName, params, filters);
-  // console.log('url for', opType, 'request:\n', url.replace(/\&/g, '\n&'));
+  var url = buildRequestUrl(options.serviceName, options.params, options.filters);
+  // console.log('url for', options.opType, 'request:\n', url.replace(/\&/g, '\n&'));
   
   
-  var request = restler.get(url, reqOptions);
+  var request = restler.get(url, options.reqOptions);
   var data;
 
   // emitted when the request has finished whether it was successful or not
@@ -160,7 +165,7 @@ var ebayApiGetRequest = function(serviceName, opType, appId, params, filters, ca
       // console.log('Data:', data);
       
       // reduce
-      var responseKey = opType + 'Response';
+      var responseKey = options.opType + 'Response';
       if (_.isUndefined(data[responseKey])) {
         return callback(new Error("Response missing " + responseKey + " element"));
       }
@@ -185,9 +190,12 @@ var ebayApiGetRequest = function(serviceName, opType, appId, params, filters, ca
     catch(error) {
       return callback(error);
     }
-    // console.log('completed successfully:\n', util.inspect(data, true, 10, true));
+    console.log('completed successfully:\n', util.inspect(data, true, 10, true));
     
-    callback(null, data);
+    // parse the response
+    options.parser(data, function(error, items) {
+      callback(error, items);
+    });
   });
 
 
@@ -214,19 +222,29 @@ module.exports.ebayApiGetRequest = ebayApiGetRequest;
 
 
 // PAGINATE multiple requests in parallel (max 100 per page, 100 pages = 10k items)
-var paginateGetRequest = function(serviceName, opType, appId, params, filters, pages, perPage, parserFunc, finalCallback) {
-  console.log('Paginated request to', serviceName, 'for', pages, 'pages of', perPage, 'items each');
+var paginateGetRequest = function(options, callback) {
+  if (! options.serviceName) return callback(new Error("Missing serviceName"));
+  if (! options.opType) return callback(new Error("Missing opType"));
+  if (! options.appId) return callback(new Error("Missing appId"));
+  options.params = options.params || {};
+  options.filters = options.filters || {};
+  options.reqOptions = options.reqOptions || {};
+  options.pages = options.pages || 2;
+  options.perPage = options.perPage || 10;
+  options.parser = options.parser || parseItemsFromResponse;
+  
+  console.log('Paginated request to', options.serviceName, 'for', options.pages, 'pages of', options.perPage, 'items each');
   
   var mergedItems = [],   // to be merged
       pageParams = [],
       p;
   
-  if (!(_.isNumber(pages) && pages > 0)) return finalCallback(new Error("Invalid number of pages requested", pages));
+  if (!(_.isNumber(options.pages) && options.pages > 0)) return callback(new Error("Invalid number of pages requested", options.pages));
   
   // index is pageInd-1. can't start array from 1, it just fills in 0 with undefined.
-  for(p = 0; p < pages; p++) {
+  for(p = 0; p < options.pages; p++) {
     pageParams[p] = {
-      'paginationInput.entriesPerPage': perPage,
+      'paginationInput.entriesPerPage': options.perPage,
       'paginationInput.pageNumber': p+1
     };
   }
@@ -237,12 +255,12 @@ var paginateGetRequest = function(serviceName, opType, appId, params, filters, p
     function eachPage(page, nextPage) {
       
       // merge the pagination params. new var to avoid confusing scope.
-      var thisPageParams = _.extend({}, params, page);
+      var thisPageParams = _.extend({}, options.params, page);
       // console.log('params for request:', params);
 
       console.log("Requesting page", thisPageParams['paginationInput.pageNumber'], 'with', thisPageParams['paginationInput.entriesPerPage'], 'items...');
 
-      ebayApiGetRequest(serviceName, opType, appId, thisPageParams, filters, function(error, response) {
+      ebayApiGetRequest(options.serviceName, options.opType, options.appId, thisPageParams, options.filters, function(error, response) {
         // console.log("Got response from page", thisPageParams['paginationInput.pageNumber']);
         
         if (error) {
@@ -250,8 +268,12 @@ var paginateGetRequest = function(serviceName, opType, appId, params, filters, p
           return nextPage(error);
         }
 
-        parserFunc(response, function(error, items) {
+        options.parser(response, function(error, items) {
           if (error) return nextPage(error);
+          
+          if (!_.isArray(items)) {
+            return nextPage(new Error("Parser did not return an array, returned a " + typeof items));
+          }
 
           console.log('Got', items.length, 'items from page', thisPageParams['paginationInput.pageNumber']);
 
@@ -266,8 +288,8 @@ var paginateGetRequest = function(serviceName, opType, appId, params, filters, p
     
     function pagesDone(error) {
       // console.log('pages are done');
-      if (error) finalCallback(error);
-      else finalCallback(null, mergedItems);
+      if (error) callback(error);
+      else callback(null, mergedItems);
     }
   );  //forEach
   
@@ -345,36 +367,38 @@ var isArrayOfValuePairs = function(el) {
 };
 
 
-// parse json data from FindingService. callback gets array of items.
-module.exports.parseFindingServiceResponse = function(data, callback) {
-  var items = _(data.searchResult).first().item || [];
-
-  // note: _map returns numeric keys. in this case it's already that way.
-  items = _(items).map( function reduceItems(item, itemInd) {
-    // recursively flatten 1-level arrays and "@key:__VALUE__" pairs
-    return flatten(item);
-  });
-  
-  callback(null, items);
-
-}; //parseFindingServiceResponse
-
-
-
-// parse json data from MerchandisingService. callback gets array of items.
-// stopOnError should be boolean, if true runs callback(error) on any error, otherwise passes empty items
-module.exports.parseMerchandisingServiceResponse = function(data, callback) {
-  // console.log('parsing', util.inspect(data, false, 10, true));
-  var items;
+// extract an array of items from responses. differs by query type.
+// @todo build this out as more queries are added...
+var parseItemsFromResponse = function(data, callback) {
+  var items = [];
   try {
-    // @todo this is what getMostWatchedItems returns, what about others?
-    items = data.itemRecommendations.item;
+    if (data.searchResult) {
+      items = _(data.searchResult).first().item || [];      // e.g. for FindingService
+    }
+    else if (data.itemRecommendations.item) {
+      items = data.itemRecommendations.item || [];          // e.g. for getMostWatched
+    }
+    
+    // recursively flatten 1-level arrays and "@key:__VALUE__" pairs
+    items = _(items).map(flatten);
   }
   catch(error) {
-    // @todo this is probably benign if 'ack' passed earlier test... good to return as error?
-    error.message = util.format("Missing itemRecommendations. ", error.message, "in:", util.inspect(data,false,3));
-    return callback(error);
+    callback(error);
   }
-  
   callback(null, items);
 };
+module.exports.parseItemsFromResponse = parseItemsFromResponse;
+
+
+
+// check if an item URL is an affiliate URL
+// non-affil URLs look like 'http://www.ebay.com...', affil URLs look like 'http://rover.ebay.com/rover...'
+//  and have param &campid=TRACKINGID (campid=1234567890)
+module.exports.checkAffiliateUrl = function(url) {
+  var regexAffil = /http\:\/\/rover\.ebay\.com\/rover/,
+      regexNonAffil = /http\:\/\/www\.ebay\.com/,
+      regexCampaign = /campid=[0-9]{5}/;
+
+  return (regexAffil.test(url) && !regexNonAffil.test(url) && regexCampaign.test(url));
+};
+
