@@ -45,7 +45,7 @@ and can optionally contain:
 - reqOptions: passed to the request, e.g. with custom headers
 - parser: function which takes the response data and extracts items (or other units depending on the query). Defaults to `parseItemsFromResponse`. To return the raw data, pass in a function like `function(data, callback) { callback(null, data); }`.
 
-Returns (to `callback`) the data returned by the service (without parsing).
+`callback` gets `(error, items)` or `(error, data)` depending on the parser.
 
 
 ### `paginateGetRequest(options, callback)`
@@ -61,12 +61,16 @@ Make a multi-page request to a GET service, running them in parallel and combini
 
 Note: Because the pages all run in parallel, they can cause spikes on CPU and network activity. In the future, I might switch this to using an [async](https://github.com/caolan/async) `queue` (instead of `forEach`) with a variable concurrency. (A `forEachSeries` can also be used, but negates the purpose of running the requests asynchronously.)
 
+`callback` gets `(error, items)`
+
 
 ### `parseItemsFromResponse(data, callback)`
 
 Default parser, takes the response from an API request and parses items or other units per request type.
 Each response type is a little different, so this needs to be built out further.
 Is used as the default `parser` option for `paginateGetRequest`.
+
+`callback` gets `(error, items)` where `items` are the items parsed from `data`.
 
 
 ## Helpers
@@ -85,7 +89,7 @@ Runs synchronously, returns flattened object.
 
 ### `ItemFilter(name, value, paramName, paramValue)`
 
-A class constructor to simplify creating filters.
+A class constructor to simplify creating filters. (See the examples)
 
 
 ### `checkAffiliateUrl(url)`
