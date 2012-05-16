@@ -144,7 +144,6 @@ var ebayApiGetRequest = function(options, callback) {
   var url = buildRequestUrl(options.serviceName, options.params, options.filters);
   // console.log('url for', options.opType, 'request:\n', url.replace(/\&/g, '\n&'));
   
-  
   var request = restler.get(url, options.reqOptions);
   var data;
 
@@ -157,12 +156,11 @@ var ebayApiGetRequest = function(options, callback) {
       return callback(error);
     }
     else if (response.statusCode !== 200) {
-      return callback(new Error(util.format("Bad response status code", response.statusCode)));
+      return callback(new Error(util.format("Bad response status code", response.statusCode, result)));
     }
 
     try {
       data = JSON.parse(result);
-      // console.log('Data:', data);
       
       // reduce
       var responseKey = options.opType + 'Response';
@@ -170,12 +168,10 @@ var ebayApiGetRequest = function(options, callback) {
         return callback(new Error("Response missing " + responseKey + " element"));
       }
       data = data[responseKey];
-      
+
       if (_.isArray(data)) {
-        // console.log('Data is an array of', data.length, 'element(s). Taking 1st');
         data = _(data).first();
       }
-      // console.log(data);
       
       // 'ack' and 'errMsg' indicate errors.
       // - in FindingService it's nested, in Merchandising it's flat - flatten to normalize
@@ -183,14 +179,13 @@ var ebayApiGetRequest = function(options, callback) {
       
       if (_.isUndefined(data.ack) || data.ack !== 'Success') {
         var errMsg = _.isUndefined(data.errorMessage) ? null : flatten(data.errorMessage);
-        // (errMsg.error[0].message[0] is the message)
         return callback(new Error(util.format("Bad 'ack' code", data.ack, 'errorMessage?', util.inspect(errMsg, true, 3))));
       }
     }
     catch(error) {
       return callback(error);
     }
-    console.log('completed successfully:\n', util.inspect(data, true, 10, true));
+    // console.log('completed successfully:\n', util.inspect(data, true, 10, true));
     
     // parse the response
     options.parser(data, function(error, items) {
@@ -252,37 +247,33 @@ var paginateGetRequest = function(options, callback) {
   
   // run pagination requests in parallel
   async.forEach(pageParams,
-    function eachPage(page, nextPage) {
+    function eachPage(thisPageParams, nextPage) {
       
       // merge the pagination params. new var to avoid confusing scope.
-      var thisPageParams = _.extend({}, options.params, page);
-      // console.log('params for request:', params);
+      var thisPageOptions = _.extend({}, options);
+      _.extend(thisPageOptions.params, thisPageParams);
 
-      console.log("Requesting page", thisPageParams['paginationInput.pageNumber'], 'with', thisPageParams['paginationInput.entriesPerPage'], 'items...');
+      console.log("Requesting page", thisPageOptions.params['paginationInput.pageNumber'], 'with', thisPageOptions.params['paginationInput.entriesPerPage'], 'items...');
 
-      ebayApiGetRequest(options.serviceName, options.opType, options.appId, thisPageParams, options.filters, function(error, response) {
-        // console.log("Got response from page", thisPageParams['paginationInput.pageNumber']);
+      ebayApiGetRequest(options, function(error, items) {
+        // console.log("Got response from page", thisPageOptions.params['paginationInput.pageNumber']);
         
         if (error) {
-          error.message = "Error on page " + thisPageParams['paginationInput.pageNumber'] + ": " + error.message;
+          error.message = "Error on page " + thisPageOptions.params['paginationInput.pageNumber'] + ": " + error.message;
           return nextPage(error);
         }
 
-        options.parser(response, function(error, items) {
-          if (error) return nextPage(error);
-          
-          if (!_.isArray(items)) {
-            return nextPage(new Error("Parser did not return an array, returned a " + typeof items));
-          }
+        if (!_.isArray(items)) {
+          return nextPage(new Error("Parser did not return an array, returned a " + typeof items));
+        }
 
-          console.log('Got', items.length, 'items from page', thisPageParams['paginationInput.pageNumber']);
+        console.log('Got', items.length, 'items from page', thisPageOptions.params['paginationInput.pageNumber']);
 
-          // console.log('have', mergedItems.length, 'previous items, adding', items.length, 'new items...');
-          mergedItems = mergedItems.concat(items);
-          // console.log('now have', mergedItems.length, 'merged items');
+        // console.log('have', mergedItems.length, 'previous items, adding', items.length, 'new items...');
+        mergedItems = mergedItems.concat(items);
+        // console.log('now have', mergedItems.length, 'merged items');
 
-          nextPage(null);
-        });
+        nextPage(null);
       });
     },
     
@@ -370,6 +361,8 @@ var isArrayOfValuePairs = function(el) {
 // extract an array of items from responses. differs by query type.
 // @todo build this out as more queries are added...
 var parseItemsFromResponse = function(data, callback) {
+  // console.log('parse data', data);
+  
   var items = [];
   try {
     if (data.searchResult) {
@@ -378,9 +371,11 @@ var parseItemsFromResponse = function(data, callback) {
     else if (data.itemRecommendations.item) {
       items = data.itemRecommendations.item || [];          // e.g. for getMostWatched
     }
-    
+
     // recursively flatten 1-level arrays and "@key:__VALUE__" pairs
-    items = _(items).map(flatten);
+    items = _(items).map(function(item) {
+      return flatten(item);
+    });
   }
   catch(error) {
     callback(error);
