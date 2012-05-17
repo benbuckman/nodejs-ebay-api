@@ -251,7 +251,7 @@ var paginateGetRequest = function(options, callback) {
       
       // merge the pagination params. new var to avoid confusing scope.
       var thisPageOptions = _.extend({}, options);
-      _.extend(thisPageOptions.params, thisPageParams);
+      thisPageOptions.params = _.extend({}, thisPageOptions.params, thisPageParams);
 
       console.log("Requesting page", thisPageOptions.params['paginationInput.pageNumber'], 'with', thisPageOptions.params['paginationInput.entriesPerPage'], 'items...');
 
