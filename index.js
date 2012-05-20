@@ -255,7 +255,7 @@ var paginateGetRequest = function(options, callback) {
 
       console.log("Requesting page", thisPageOptions.params['paginationInput.pageNumber'], 'with', thisPageOptions.params['paginationInput.entriesPerPage'], 'items...');
 
-      ebayApiGetRequest(options, function(error, items) {
+      ebayApiGetRequest(thisPageOptions, function(error, items) {
         // console.log("Got response from page", thisPageOptions.params['paginationInput.pageNumber']);
         
         if (error) {
