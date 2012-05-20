@@ -366,7 +366,9 @@ var parseItemsFromResponse = function(data, callback) {
   var items = [];
   try {
     if (data.searchResult) {
-      items = _(data.searchResult).first().item || [];      // e.g. for FindingService
+      // reduce in steps so successful but empty responses don't throw error
+      data = !_.isEmpty(data.searchResult) ? _(data.searchResult).first() : null;
+      items = (data && data.item) || [];      // e.g. for FindingService
     }
     else if (data.itemRecommendations.item) {
       items = data.itemRecommendations.item || [];          // e.g. for getMostWatched
