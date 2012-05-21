@@ -365,13 +365,23 @@ var parseItemsFromResponse = function(data, callback) {
   
   var items = [];
   try {
-    if (data.searchResult) {
-      // reduce in steps so successful but empty responses don't throw error
-      data = !_.isEmpty(data.searchResult) ? _(data.searchResult).first() : null;
-      items = (data && data.item) || [];      // e.g. for FindingService
+    if (typeof data.searchResult !== 'undefined') {    // for FindingService
+      // reduce in steps so successful-but-empty responses don't throw error
+      if (!_.isEmpty(data.searchResult)) {
+        data = _(data.searchResult).first();
+        if (typeof data !== 'undefined') {
+          if (typeof data.item !== 'undefined') {
+            items = data.item;
+          }
+        }
+      }
     }
-    else if (data.itemRecommendations.item) {
-      items = data.itemRecommendations.item || [];          // e.g. for getMostWatched
+    else if (typeof data.itemRecommendations !== 'undefined') {
+      if (typeof data.itemRecommendations !== 'undefined') {
+        if (typeof data.itemRecommendations.item !== 'undefined') {
+          items = _.isArray(data.itemRecommendations.item) ? data.itemRecommendations.item : [];
+        }
+      }
     }
 
     // recursively flatten 1-level arrays and "@key:__VALUE__" pairs
