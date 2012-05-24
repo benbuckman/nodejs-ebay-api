@@ -1,7 +1,7 @@
 {
   "name": "ebay-api",
   "description": "eBay API Client",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "homepage": "https://github.com/newleafdigital/nodejs-ebay-api",
   "author": "Ben Buckman <ben@newleafdigital.com> (http://newleafdigital.com)",
   "repository": {
