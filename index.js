@@ -75,11 +75,17 @@ var buildFilters = function(filterType, filters) {
 var buildRequestUrl = function(serviceName, params, filters) {  
   var url;
   
-  if (serviceName === 'FindingService') {
-    url = "https://svcs.ebay.com/services/search/" + serviceName + "/v1?";
-  }
-  else {
-    url = "https://svcs.ebay.com/" + serviceName + '?';
+  switch (serviceName) {
+    case 'FindingService':
+      url = "https://svcs.ebay.com/services/search/" + serviceName + "/v1?";
+      break;
+      
+    case 'Shopping':
+      url = "http://open.api.ebay.com/shopping?";
+      break;
+      
+    default:
+      url = "https://svcs.ebay.com/" + serviceName + '?';
   }
 
   url += buildParams(params);     // no trailing &
@@ -116,6 +122,16 @@ var defaultParams = function(serviceName, opType, appId) {
         'SERVICE-NAME': serviceName,
         'CONSUMER-ID': appId,
         'SERVICE-VERSION': '1.5.0'   // based on response data
+      });
+      break;
+      
+    case 'Shopping':
+      _.extend(params, {
+        'appid': appId,
+        'version': '771',
+        'siteid': '0',
+        'responseencoding': 'JSON',
+        'callname': opType
       });
       break;
   }
@@ -162,12 +178,14 @@ var ebayApiGetRequest = function(options, callback) {
     try {
       data = JSON.parse(result);
       
-      // reduce
-      var responseKey = options.opType + 'Response';
-      if (_.isUndefined(data[responseKey])) {
-        return callback(new Error("Response missing " + responseKey + " element"));
+      // drill down to item(s). each service has its own structure.
+      if (options.serviceName !== 'Shopping') {
+        var responseKey = options.opType + 'Response';
+        if (_.isUndefined(data[responseKey])) {
+          return callback(new Error("Response missing " + responseKey + " element"));
+        }
+        data = data[responseKey];
       }
-      data = data[responseKey];
 
       if (_.isArray(data)) {
         data = _(data).first();
@@ -176,7 +194,11 @@ var ebayApiGetRequest = function(options, callback) {
       // 'ack' and 'errMsg' indicate errors.
       // - in FindingService it's nested, in Merchandising it's flat - flatten to normalize
       if (!_.isUndefined(data.ack)) data.ack = flatten(data.ack);
-      
+      else if (!_.isUndefined(data.Ack)) {      // uppercase, standardize.
+        data.ack = flatten(data.Ack);
+        delete data.Ack;
+      }
+
       if (_.isUndefined(data.ack) || data.ack !== 'Success') {
         var errMsg = _.isUndefined(data.errorMessage) ? null : flatten(data.errorMessage);
         return callback(new Error(util.format("Bad 'ack' code", data.ack, 'errorMessage?', util.inspect(errMsg, true, 3))));
@@ -365,7 +387,11 @@ var parseItemsFromResponse = function(data, callback) {
   
   var items = [];
   try {
-    if (typeof data.searchResult !== 'undefined') {    // for FindingService
+    if (typeof data.Item !== 'undefined') {       // e.g. for Shopping::GetSingleItem
+      items = [ data.Item ];    // preserve array for standardization (?)
+    }
+    
+    else if (typeof data.searchResult !== 'undefined') {    // e.g. for FindingService
       // reduce in steps so successful-but-empty responses don't throw error
       if (!_.isEmpty(data.searchResult)) {
         data = _(data.searchResult).first();
@@ -392,6 +418,7 @@ var parseItemsFromResponse = function(data, callback) {
   catch(error) {
     callback(error);
   }
+  
   callback(null, items);
 };
 module.exports.parseItemsFromResponse = parseItemsFromResponse;
