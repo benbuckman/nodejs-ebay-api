@@ -172,7 +172,7 @@ var ebayApiGetRequest = function(options, callback) {
       return callback(error);
     }
     else if (response.statusCode !== 200) {
-      return callback(new Error(util.format("Bad response status code", response.statusCode, result)));
+      return callback(new Error(util.format("Bad response status code", response.statusCode, result.toString())));
     }
 
     try {
