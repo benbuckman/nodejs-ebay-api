@@ -3,7 +3,7 @@ eBay API client for Node.js
 
 ## Background
 
-This was built to power the "eBay Picks" section of [AntiquesNearMe.com](http://antiquesnearme.com). It can currently query the FindingService, MerchandisingService, and Shopping API via GET requests, and other services can be added as needed. (Pull requests welcome!)
+This was built to power the "eBay Picks" section of [AntiquesNearMe.com](http://antiquesnearme.com). It can currently query the FindingService, MerchandisingService, and Shopping API via JSON-GET requests, and parts of the Trading API via XML-POST. Other services can be added as needed. (Pull requests welcome!)
 
 ## To use
 
@@ -20,8 +20,6 @@ eBay has an enormous collection of APIs built over the years. Enter the labyrint
 
 Sign up for an API key here: [https://publisher.ebaypartnernetwork.com/PublisherToolsAPI](https://publisher.ebaypartnernetwork.com/PublisherToolsAPI)
 (You'll need a key to run the examples.)
-
-This library only works with the recent generation of GET/JSON APIs. It does not work with XML or SOAP. (So this library cannot yet be used to query the GetCategories API, for example.) Anyone is welcome to add these layers and contribute them back.
 
 Make sure to obey the eBay API [License](http://developer.ebay.com/join/licenses/individual/) and [Terms](https://www.x.com/developers/ebay/programs/affiliates/terms) when using this library.
 
@@ -52,6 +50,7 @@ and can optionally contain:
 - filters: (see examples and API documentation)
 - reqOptions: passed to the request, e.g. with custom headers
 - parser: function which takes the response data and extracts items (or other units depending on the query). Defaults to `parseItemsFromResponse`. To return the raw data, pass in a function like `function(data, callback) { callback(null, data); }`.
+- sandbox: true/false (default false = production). May need to add additional endpoint URLs to the code as needed.
 
 `callback` gets `(error, items)` or `(error, data)` depending on the parser.
 
@@ -79,6 +78,29 @@ Each response type is a little different, so this needs to be built out further.
 Is used as the default `parser` option for `paginateGetRequest`.
 
 `callback` gets `(error, items)` where `items` are the items parsed from `data`.
+
+
+### `ebayApiPostXmlRequest(options, callback)`
+
+Make an individual request to a POST-XML service.
+`options` must contain:
+
+- serviceName: e.g. 'FindingService'
+- opType: e.g. 'findItemsAdvanced'
+
+and can optionally contain:
+
+- (for authentication)
+  - devName
+  - cert
+  - appName
+
+- params (for the XML input)
+- reqOptions: headers and other options to pass to the request
+  - IMPT: Some parameters for these endpoints, such as _SITE-ID_ and _authToken_, should go into the headers, not into `params`. See the API documentation.
+- sandbox: true/false (default false = production). May need to add additional endpoint URLs to the code as needed.
+
+`callback` gets `(error, data)`. (There is not currently a default parser for these endpoints.)
 
 
 ## Helpers
