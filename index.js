@@ -11,7 +11,7 @@ var restler = require('restler'),
 // param usage:
 //  - use null values for plain params
 //  - use arrays for repeating keys
-var buildParams = function(params) {
+var buildUrlParams = function(params) {
   var urlFilters = [];  // string parts to be joined
   
   // (force each to be string w/ ''+var)
@@ -69,26 +69,53 @@ var buildFilters = function(filterType, filters) {
 };
 
 
-// build URL to PRODUCTION endpoint of GET APIs
+// build URL to API endpoints
+// set sandbox=true for sandbox, otherwise production
 // - params is a 1D obj
 // - filters is an obj of { filterType:[filters] } (where filters is an array of ItemFilter)
-var buildRequestUrl = function(serviceName, params, filters) {  
+// params,filters only apply to GET requests; for POST pass in empty {} or null
+var buildRequestUrl = function(serviceName, params, filters, sandbox) {
   var url;
+  
+  params = params || {};
+  filters = filters || {};
+  sandbox = (typeof sandbox === 'boolean') ? sandbox : false;
   
   switch (serviceName) {
     case 'FindingService':
-      url = "https://svcs.ebay.com/services/search/" + serviceName + "/v1?";
+      if (sandbox) {
+        // url =   // @todo
+        throw new Error("Sandbox endpoing for FindingService not yet implemented. Please add.");
+      }
+      else url = "https://svcs.ebay.com/services/search/" + serviceName + "/v1?";
       break;
       
     case 'Shopping':
-      url = "http://open.api.ebay.com/shopping?";
+      if (sandbox) {
+        // url =   // @todo
+        throw new Error("Sandbox endpoing for Shopping service not yet implemented. Please add.");
+      }
+      else url = "http://open.api.ebay.com/shopping?";
       break;
+    
+    
+    case 'Trading':   // ...and the other XML APIs
+      if (sandbox) url = 'https://api.sandbox.ebay.com/ws/api.dll';
+      else url = 'https://api.ebay.com/ws/api.dll';
       
+      // params and filters don't apply to URLs w/ these
+      return url;
+      // break;
+    
     default:
-      url = "https://svcs.ebay.com/" + serviceName + '?';
+      if (sandbox) {
+        // url =   // @todo
+        throw new Error("Sandbox endpoing for " + serviceName + " service not yet implemented. Please add.");
+      }
+      else url = "https://svcs.ebay.com/" + serviceName + '?';
   }
 
-  url += buildParams(params);     // no trailing &
+  url += buildUrlParams(params);     // no trailing &
   
   _(filters).each(function(typeFilters, type) {
     url += buildFilters(type, typeFilters);     // each has leading &
@@ -100,39 +127,96 @@ module.exports.buildRequestUrl = buildRequestUrl;
 
 
 
-// default params per service type
-var defaultParams = function(serviceName, opType, appId) {
-  var params = {
-    'OPERATION-NAME': opType,
+// build XML input for XML-POST requests
+// params should include: authToken, ...
+var buildXmlInput = function(opType, params) {
+  var xmlBuilder = require('xml');
+  
+  var data = {}, top;
+  
+  switch(opType) {
+    // @todo others might have different top levels...
+    case 'GetOrders':
+    default:
+      data[opType + 'Request'] = [];      // e.g. <GetOrdersRequest>
+      top = data[opType + 'Request'];
+      top.push({ '_attr' : { 'xmlns' : "urn:ebay:apis:eBLBaseComponents" } });      
+  }
+  
+  if (typeof params.authToken !== 'undefined') {
+    top.push({ 'RequesterCredentials' : [ { 'eBayAuthToken' : params.authToken } ] });
+    delete params.authToken;
+  }
+  
+  // handle top level
+  // (e.g. OrderStatus, etc)
+  // @todo better way to handle deeper inputs?
+  _(params).each(function(value, key) {
+    var el = {};
+    el[key] = value;
+    top.push(el);
+  });
+
+  // console.log(util.inspect(data,true,10));
+  data = [ data ];
+  return '<?xml version="1.0" encoding="UTF-8"?>' + "\n" + xmlBuilder(data, true);
+};
+
+
+// default params per service type.
+// for GET requests these go into URL. for POST requests these go into headers.
+// options differ by service, see below.
+var defaultParams = function(options) {
+  var params = {},
+  defaultGetParams = {
+    'OPERATION-NAME': options.opType,
     'GLOBAL-ID': 'EBAY-US',
     'RESPONSE-DATA-FORMAT': 'JSON',
     'REST-PAYLOAD': null     // (not sure what this does)
   };
+  options = options || {};
   
-  switch (serviceName) {
+  switch (options.serviceName) {
+    
+    // [GET params >
+    
     case 'FindingService':
-      _.extend(params, {
-        'SECURITY-APPNAME': appId,
+      params = _.extend({}, defaultGetParams, {
+        'SECURITY-APPNAME': options.appId ? options.appId : null,
         'SERVICE-VERSION': '1.11.0'
       });
       break;
       
     case 'MerchandisingService':
-      _.extend(params, {
-        'SERVICE-NAME': serviceName,
-        'CONSUMER-ID': appId,
+      params = _.extend({}, defaultGetParams, {
+        'SERVICE-NAME': options.serviceName,
+        'CONSUMER-ID': options.appId ? options.appId : null,
         'SERVICE-VERSION': '1.5.0'   // based on response data
       });
       break;
       
     case 'Shopping':
-      _.extend(params, {
-        'appid': appId,
+      params = _.extend({}, defaultGetParams, {
+        'appid': options.appId ? options.appId : null,
         'version': '771',
         'siteid': '0',
         'responseencoding': 'JSON',
-        'callname': opType
+        'callname': options.opType
       });
+      break;
+    
+    
+    // [POST params >
+    
+    case 'Trading':
+      params = {
+        'X-EBAY-API-CALL-NAME' : options.opType,
+        'X-EBAY-API-COMPATIBILITY-LEVEL' : '773',
+        'X-EBAY-API-SITEID' : '0', // US
+        'X-EBAY-API-DEV-NAME': options.devName,
+        'X-EBAY-API-CERT-NAME': options.cert,
+        'X-EBAY-API-APP-NAME': options.appName
+      };
       break;
   }
   
@@ -141,7 +225,7 @@ var defaultParams = function(serviceName, opType, appId) {
 
 
 
-// make a single GET request to a service
+// make a single GET request to a JSON service
 var ebayApiGetRequest = function(options, callback) {
   if (! options.serviceName) return callback(new Error("Missing serviceName"));
   if (! options.opType) return callback(new Error("Missing opType"));
@@ -150,14 +234,16 @@ var ebayApiGetRequest = function(options, callback) {
   options.filters = options.filters || {};
   options.reqOptions = options.reqOptions || {};
   options.parser = options.parser || parseItemsFromResponse;
+  options.sandbox = options.sandbox || false;
     
   if (options.serviceName === 'MerchandisingService') {
     options.reqOptions.decoding = 'buffer';   // otherwise fails to decode json. doesn't seem to be necessary w/ FindingService.
   }
   
-  _.defaults(options.params, defaultParams(options.serviceName, options.opType, options.appId));
+  // fill in default params. explicit options above will override defaults.
+  _.defaults(options.params, defaultParams(options));
   
-  var url = buildRequestUrl(options.serviceName, options.params, options.filters);
+  var url = buildRequestUrl(options.serviceName, options.params, options.filters, options.sandbox);
   // console.log('url for', options.opType, 'request:\n', url.replace(/\&/g, '\n&'));
   
   var request = restler.get(url, options.reqOptions);
@@ -238,7 +324,86 @@ module.exports.ebayApiGetRequest = ebayApiGetRequest;
 
 
 
-// PAGINATE multiple requests in parallel (max 100 per page, 100 pages = 10k items)
+// make a single POST request to an XML service
+var ebayApiPostXmlRequest = function(options, callback) {
+  if (! options.serviceName) return callback(new Error("Missing serviceName"));
+  if (! options.opType) return callback(new Error("Missing opType"));
+  
+  options.params = options.params || {}; 
+  options.reqOptions = options.reqOptions || {};
+  options.sandbox = options.sandbox || false;
+
+  // options.parser = options.parser || ...;   // @todo
+
+  
+  // app/auth params go into headers (see defaultParams())
+  options.reqOptions.headers = options.reqOptions.headers || {};
+  _.defaults(options.reqOptions.headers, defaultParams(options));
+  // console.dir(options);
+
+  var url = buildRequestUrl(options.serviceName, {}, {}, options.sandbox);
+  // console.log('URL:', url);
+  
+  options.reqOptions.data = buildXmlInput(options.opType, options.params);
+  // console.dir(options.reqOptions);
+  
+  
+  var request = restler.post(url, options.reqOptions);
+  
+  request.on('complete', function(result, response) {
+    if (result instanceof Error) {
+      var error = result;
+      error.message = "Completed with error: " + error.message;
+      return callback(error);
+    }
+    else if (response.statusCode !== 200) {
+      return callback(new Error(util.format("Bad response status code", response.statusCode, result.toString())));
+    }
+
+    async.waterfall([
+
+      // convert xml to json
+      function toJson(next) {
+        var xml2js = require('xml2js'),
+            parser = new xml2js.Parser();
+        
+        parser.parseString(result, function parseXmlCallback(error, data) {
+          if (error) {
+            error.message = "Error parsing XML: " + error.message;
+            return next(error);
+          }
+          next(data);
+        });
+      },
+      
+
+      function parseData(data, next) {
+        //// @todo parse the response
+        // options.parser(data, next);
+        
+        next(data);
+      }
+      
+    ],
+    function(error, data){
+      if (error) return callback(error);
+      callback(null, data);
+    });
+    
+  });
+
+  // emitted when some errors have occurred
+  // either this OR 'completed' should fire
+  request.on('error', function(error, response) {
+    error.message = "Request error: " + error.message;
+    callback(error);
+  });
+};
+module.exports.ebayApiPostXmlRequest = ebayApiPostXmlRequest;
+
+
+
+// PAGINATE multiple GET/JSON requests in parallel (max 100 per page, 100 pages = 10k items)
 var paginateGetRequest = function(options, callback) {
   if (! options.serviceName) return callback(new Error("Missing serviceName"));
   if (! options.opType) return callback(new Error("Missing opType"));
