@@ -381,7 +381,7 @@ var ebayApiPostXmlRequest = function(options, callback) {
         //// @todo parse the response
         // options.parser(data, next);
         
-        next(data);
+        next(null, data);
       }
       
     ],
