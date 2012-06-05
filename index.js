@@ -211,7 +211,7 @@ var defaultParams = function(options) {
     case 'Trading':
       params = {
         'X-EBAY-API-CALL-NAME' : options.opType,
-        'X-EBAY-API-COMPATIBILITY-LEVEL' : '773',
+        'X-EBAY-API-COMPATIBILITY-LEVEL' : '775',
         'X-EBAY-API-SITEID' : '0', // US
         'X-EBAY-API-DEV-NAME': options.devName,
         'X-EBAY-API-CERT-NAME': options.cert,
