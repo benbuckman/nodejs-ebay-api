@@ -372,7 +372,7 @@ var ebayApiPostXmlRequest = function(options, callback) {
             error.message = "Error parsing XML: " + error.message;
             return next(error);
           }
-          next(data);
+          next(null, data);
         });
       },
       
