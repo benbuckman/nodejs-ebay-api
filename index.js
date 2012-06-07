@@ -129,6 +129,10 @@ module.exports.buildRequestUrl = buildRequestUrl;
 
 // build XML input for XML-POST requests
 // params should include: authToken, ...
+//
+// handle nested elements w/ array wrapper around each obj.
+// (quirk of XmlBuilder lib)
+// e.g. 'Pagination': [ { 'EntriesPerPage': '100' } ]
 var buildXmlInput = function(opType, params) {
   var xmlBuilder = require('xml');
   
@@ -147,10 +151,7 @@ var buildXmlInput = function(opType, params) {
     top.push({ 'RequesterCredentials' : [ { 'eBayAuthToken' : params.authToken } ] });
     delete params.authToken;
   }
-  
-  // handle top level
-  // (e.g. OrderStatus, etc)
-  // @todo better way to handle deeper inputs?
+
   _(params).each(function(value, key) {
     var el = {};
     el[key] = value;
@@ -159,6 +160,7 @@ var buildXmlInput = function(opType, params) {
 
   // console.log(util.inspect(data,true,10));
   data = [ data ];
+
   return '<?xml version="1.0" encoding="UTF-8"?>' + "\n" + xmlBuilder(data, true);
 };
 
@@ -329,7 +331,10 @@ var ebayApiPostXmlRequest = function(options, callback) {
   if (! options.serviceName) return callback(new Error("Missing serviceName"));
   if (! options.opType) return callback(new Error("Missing opType"));
   
-  options.params = options.params || {}; 
+  
+  // @see note in buildXmlInput() re: nested elements
+  options.params = options.params || {};
+  
   options.reqOptions = options.reqOptions || {};
   options.sandbox = options.sandbox || false;
 
@@ -344,9 +349,7 @@ var ebayApiPostXmlRequest = function(options, callback) {
   var url = buildRequestUrl(options.serviceName, {}, {}, options.sandbox);
   // console.log('URL:', url);
   
-  options.reqOptions.data = buildXmlInput(options.opType, options.params);
-  // console.dir(options.reqOptions);
-  
+  options.reqOptions.data = buildXmlInput(options.opType, options.params);  
   
   var request = restler.post(url, options.reqOptions);
   
