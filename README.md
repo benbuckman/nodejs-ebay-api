@@ -3,7 +3,7 @@ eBay API client for Node.js
 
 ## Background
 
-This was built to power the "eBay Picks" section of [AntiquesNearMe.com](http://antiquesnearme.com). It can currently query the FindingService, MerchandisingService, and Shopping API via JSON-GET requests, and parts of the Trading API via XML-POST. Other services can be added as needed. (Pull requests welcome!)
+This was built to power the "eBay Picks" section of [AntiquesNearMe.com](http://antiquesnearme.com). It can currently query the FindingService, MerchandisingService, and Shopping API via JSON-GET requests, and the Trading API via XML-POST. Other services can be added as needed. (Pull requests welcome!)
 
 ## To use
 
@@ -96,6 +96,8 @@ and can optionally contain:
   - appName
 
 - params (for the XML input)
+  - (Note: for `GetCategories` and possibly other services, pass the auth token as `params.authToken`, not `RequesterCredentials.eBayAuthToken` as indicated in the API documentation.)
+
 - reqOptions: headers and other options to pass to the request
   - IMPT: Some parameters for these endpoints, such as _SITE-ID_ and _authToken_, should go into the headers, not into `params`. See the API documentation.
 - sandbox: true/false (default false = production). May need to add additional endpoint URLs to the code as needed.
