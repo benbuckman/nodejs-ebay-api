@@ -163,7 +163,6 @@ var buildXmlInput = function(opType, params) {
     _(values).each(function(value){
       var el = {};
       el[key] = value;
-      console.log(key, el);
       top.push(el);      
     });
   });
