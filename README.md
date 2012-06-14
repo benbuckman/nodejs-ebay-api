@@ -97,6 +97,7 @@ and can optionally contain:
 
 - params (for the XML input)
   - (Note: for `GetCategories` and possibly other services, pass the auth token as `params.authToken`, not `RequesterCredentials.eBayAuthToken` as indicated in the API documentation.)
+  - See `buildXmlInput()` for ways to structure this.
 
 - reqOptions: headers and other options to pass to the request
   - IMPT: Some parameters for these endpoints, such as _SITE-ID_ and _authToken_, should go into the headers, not into `params`. See the API documentation.

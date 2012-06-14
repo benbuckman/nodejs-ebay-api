@@ -133,6 +133,9 @@ module.exports.buildRequestUrl = buildRequestUrl;
 // handle nested elements w/ array wrapper around each obj.
 // (quirk of XmlBuilder lib)
 // e.g. 'Pagination': [ { 'EntriesPerPage': '100' } ]
+//
+// for repeatable fields, use an array value (see below)
+//
 var buildXmlInput = function(opType, params) {
   var xmlBuilder = require('xml');
   
@@ -151,11 +154,18 @@ var buildXmlInput = function(opType, params) {
     top.push({ 'RequesterCredentials' : [ { 'eBayAuthToken' : params.authToken } ] });
     delete params.authToken;
   }
-
-  _(params).each(function(value, key) {
-    var el = {};
-    el[key] = value;
-    top.push(el);
+  
+  // for repeatable fields, use array values.
+  // to keep this simpler, treat everything as an array value.
+  _(params).each(function(values, key) {
+    if (!_.isArray(values)) values = [values];
+    
+    _(values).each(function(value){
+      var el = {};
+      el[key] = value;
+      console.log(key, el);
+      top.push(el);      
+    });
   });
 
   // console.log(util.inspect(data,true,10));
@@ -352,7 +362,8 @@ var ebayApiPostXmlRequest = function(options, callback) {
   var url = buildRequestUrl(options.serviceName, {}, {}, options.sandbox);
   // console.log('URL:', url);
   
-  options.reqOptions.data = buildXmlInput(options.opType, options.params);  
+  options.reqOptions.data = buildXmlInput(options.opType, options.params);
+  // console.log(options.reqOptions.data);
   
   var request = restler.post(url, options.reqOptions);
   
