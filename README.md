@@ -99,6 +99,7 @@ and can optionally contain:
 - reqOptions: headers and other options to pass to the request
   - IMPT: Some parameters for these endpoints, such as _SITE-ID_ and _authToken_, should go into the headers, not into `params`. See the API documentation.
 - sandbox: true/false (default false = production). May need to add additional endpoint URLs to the code as needed.
+- rawXml: boolean. If `true`, passes the raw XML response back to callback. `false` means XML is converted to JSON (for consistency with other APIs). Default is `false`/JSON.
 
 `callback` gets `(error, data)`. (There is not currently a default parser for these endpoints.)
 

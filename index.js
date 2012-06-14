@@ -339,6 +339,9 @@ var ebayApiPostXmlRequest = function(options, callback) {
   options.sandbox = options.sandbox || false;
 
   // options.parser = options.parser || ...;   // @todo
+  
+  // converts XML to JSON by default, but can also return raw XML
+  options.rawXml = options.rawXml || false;
 
   
   // app/auth params go into headers (see defaultParams())
@@ -361,6 +364,11 @@ var ebayApiPostXmlRequest = function(options, callback) {
     }
     else if (response.statusCode !== 200) {
       return callback(new Error(util.format("Bad response status code", response.statusCode, result.toString())));
+    }
+    
+    // raw XML wanted?
+    if (options.rawXml) {
+      return callback(null, result);
     }
 
     async.waterfall([
