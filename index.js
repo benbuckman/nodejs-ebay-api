@@ -628,3 +628,33 @@ module.exports.checkAffiliateUrl = function checkAffiliateUrl(url) {
   return (regexAffil.test(url) && !regexNonAffil.test(url) && regexCampaign.test(url));
 };
 
+
+
+// check the latest API versions (to update the code accordingly)
+// callback gets hash of APIs:versions
+module.exports.getLatestApiVersions = function getLatestApiVersions(options, callback) {
+  var versionParser = function versionParser(data, callback) {
+    callback(null, data.version);
+  };
+  
+  var checkVersion = function checkVersion(serviceName, next) {
+    console.log('checkVersion for', serviceName);
+    ebayApiGetRequest({
+      serviceName: serviceName,
+      opType: 'getVersion',
+      appId: options.appId,
+      parser: versionParser
+    },
+    next);
+  };
+  
+  async.series({
+    'finding': async.apply(checkVersion, 'FindingService'),
+    'merchandising': async.apply(checkVersion, 'MerchandisingService'),
+    // 'shopping': async.apply(checkVersion, 'Shopping'),   // doesn't have this call!
+    // 'trading': async.apply(checkVersion, 'Trading')     // doesn't have this call!
+    
+    // ... which others have it?
+  },
+  callback);
+};
