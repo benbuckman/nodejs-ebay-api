@@ -237,16 +237,19 @@ var defaultParams = function defaultParams(options) {
 
 
 // make a single GET request to a JSON service
-var ebayApiGetRequest = function(options, callback) {
+var ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
   if (! options.serviceName) return callback(new Error("Missing serviceName"));
   if (! options.opType) return callback(new Error("Missing opType"));
   if (! options.appId) return callback(new Error("Missing appId"));
+
   options.params = options.params || {}; 
   options.filters = options.filters || {};
   options.reqOptions = options.reqOptions || {};
   options.parser = options.parser || parseItemsFromResponse;
   options.sandbox = options.sandbox || false;
-    
+  
+  options.raw = options.raw || false;
+  
   if (options.serviceName === 'MerchandisingService') {
     options.reqOptions.decoding = 'buffer';   // otherwise fails to decode json. doesn't seem to be necessary w/ FindingService.
   }
@@ -271,7 +274,10 @@ var ebayApiGetRequest = function(options, callback) {
     else if (response.statusCode !== 200) {
       return callback(new Error(util.format("Bad response status code", response.statusCode, result.toString())));
     }
-
+    else if (options.raw === true) {
+      return callback(null, result.toString());
+    }
+    
     try {
       data = JSON.parse(result);
       
