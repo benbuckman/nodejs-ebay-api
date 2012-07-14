@@ -11,7 +11,7 @@ var restler = require('restler'),
 // param usage:
 //  - use null values for plain params
 //  - use arrays for repeating keys
-var buildUrlParams = function(params) {
+var buildUrlParams = function buildUrlParams(params) {
   var urlFilters = [];  // string parts to be joined
   
   // (force each to be string w/ ''+var)
@@ -31,7 +31,7 @@ var buildUrlParams = function(params) {
 
 
 // [helper] constructor for an 'itemFilter' filter (used by the Finding Service)
-module.exports.ItemFilter = function(name, value, paramName, paramValue) {
+module.exports.ItemFilter = function ItemFilter(name, value, paramName, paramValue) {
   // required
   this.name = name;
   this.value = value;
@@ -45,7 +45,7 @@ module.exports.ItemFilter = function(name, value, paramName, paramValue) {
 
 // [internal] convert a filters array to a url string
 // adapted from client-side JS example in ebay docs
-var buildFilters = function(filterType, filters) {
+var buildFilters = function buildFilters(filterType, filters) {
   var urlFilter = '';
   _(filters).each(function eachItemFilter(filter, filterInd) {    
     // each parameter in each item filter
@@ -74,7 +74,7 @@ var buildFilters = function(filterType, filters) {
 // - params is a 1D obj
 // - filters is an obj of { filterType:[filters] } (where filters is an array of ItemFilter)
 // params,filters only apply to GET requests; for POST pass in empty {} or null
-var buildRequestUrl = function(serviceName, params, filters, sandbox) {
+var buildRequestUrl = function buildRequestUrl(serviceName, params, filters, sandbox) {
   var url;
   
   params = params || {};
@@ -136,7 +136,7 @@ module.exports.buildRequestUrl = buildRequestUrl;
 //
 // for repeatable fields, use an array value (see below)
 //
-var buildXmlInput = function(opType, params) {
+var buildXmlInput = function buildXmlInput(opType, params) {
   var xmlBuilder = require('xml');
   
   var data = {}, top;
@@ -177,7 +177,7 @@ var buildXmlInput = function(opType, params) {
 // default params per service type.
 // for GET requests these go into URL. for POST requests these go into headers.
 // options differ by service, see below.
-var defaultParams = function(options) {
+var defaultParams = function defaultParams(options) {
   var params = {},
   defaultGetParams = {
     'OPERATION-NAME': options.opType,
@@ -336,7 +336,7 @@ module.exports.ebayApiGetRequest = ebayApiGetRequest;
 
 
 // make a single POST request to an XML service
-var ebayApiPostXmlRequest = function(options, callback) {
+var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
   if (! options.serviceName) return callback(new Error("Missing serviceName"));
   if (! options.opType) return callback(new Error("Missing opType"));
   
@@ -425,7 +425,7 @@ module.exports.ebayApiPostXmlRequest = ebayApiPostXmlRequest;
 
 
 // PAGINATE multiple GET/JSON requests in parallel (max 100 per page, 100 pages = 10k items)
-var paginateGetRequest = function(options, callback) {
+var paginateGetRequest = function paginateGetRequest(options, callback) {
   if (! options.serviceName) return callback(new Error("Missing serviceName"));
   if (! options.opType) return callback(new Error("Missing opType"));
   if (! options.appId) return callback(new Error("Missing appId"));
@@ -498,7 +498,7 @@ module.exports.paginateGetRequest = paginateGetRequest;
 
 // helper: RECURSIVELY turn 1-element arrays/objects into flat vars
 // (different from _.flatten() which returns an array)
-var flatten = function(el, iter) {
+var flatten = function flatten(el, iter) {
   // sanity check
   if (_.isUndefined(iter)) var iter = 1;
   if (iter > 100) {
@@ -545,7 +545,7 @@ module.exports.flatten = flatten;
 // helper: identify a structure returned from the API:
 // { @key:KEY, __value__:VALUE } => want to turn into { KEY: VALUE }
 // (and array of these into single obj)
-var isValuePair = function(el) {
+var isValuePair = function isValuePair(el) {
   if (_.isObject(el) && _.size(el) === 2) {
     var keys = _.keys(el);
     if (new RegExp(/^@/).test(keys[0]) && keys[1] === '__value__') {
@@ -558,7 +558,7 @@ var isValuePair = function(el) {
 
 // helper: find an array containing only special key-value pairs
 // e.g. 'galleryURL' (makes it easier to handle in MongoDB)
-var isArrayOfValuePairs = function(el) {
+var isArrayOfValuePairs = function isArrayOfValuePairs(el) {
   if (_.isArray(el)) {
     if (_.all(el, isValuePair)) return true;
   }
@@ -568,7 +568,7 @@ var isArrayOfValuePairs = function(el) {
 
 // extract an array of items from responses. differs by query type.
 // @todo build this out as more queries are added...
-var parseItemsFromResponse = function(data, callback) {
+var parseItemsFromResponse = function parseItemsFromResponse(data, callback) {
   // console.log('parse data', data);
   
   var items = [];
@@ -614,7 +614,7 @@ module.exports.parseItemsFromResponse = parseItemsFromResponse;
 // check if an item URL is an affiliate URL
 // non-affil URLs look like 'http://www.ebay.com...', affil URLs look like 'http://rover.ebay.com/rover...'
 //  and have param &campid=TRACKINGID (campid=1234567890)
-module.exports.checkAffiliateUrl = function(url) {
+module.exports.checkAffiliateUrl = function checkAffiliateUrl(url) {
   var regexAffil = /http\:\/\/rover\.ebay\.com\/rover/,
       regexNonAffil = /http\:\/\/www\.ebay\.com/,
       regexCampaign = /campid=[0-9]{5}/;
