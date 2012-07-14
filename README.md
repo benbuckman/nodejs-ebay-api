@@ -134,6 +134,11 @@ e.g. `checkAffiliateUrl(item.viewItemURL)`
 Returns boolean.
 
 
+### `getLatestApiVersions(callback)`
+
+Get the version numbers of the APIs that make their version available.
+
+
 ## Examples
 
 See the /examples directory. There are two examples, one with a single-page `findItemsByKeywords` request, the other a paginated `findItemsAdvanced` request. It should be reasonably apparent from the examples how these functions are used.
