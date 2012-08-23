@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/newleafdigital/nodejs-ebay-api.png)](http://travis-ci.org/newleafdigital/nodejs-ebay-api)
 eBay API client for Node.js
 ===============
 
