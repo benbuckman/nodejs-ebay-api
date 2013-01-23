@@ -84,8 +84,7 @@ var buildRequestUrl = function buildRequestUrl(serviceName, params, filters, san
   switch (serviceName) {
     case 'FindingService':
       if (sandbox) {
-        // url =   // @todo
-        throw new Error("Sandbox endpoing for FindingService not yet implemented. Please add.");
+        url = "http://svcs.sandbox.ebay.com/services/search/" + serviceName + "/v1?";
       }
       else url = "https://svcs.ebay.com/services/search/" + serviceName + "/v1?";
       break;
