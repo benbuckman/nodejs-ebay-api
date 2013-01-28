@@ -129,47 +129,26 @@ module.exports.buildRequestUrl = buildRequestUrl;
 // build XML input for XML-POST requests
 // params should include: authToken, ...
 //
-// handle nested elements w/ array wrapper around each obj.
-// (quirk of XmlBuilder lib)
-// e.g. 'Pagination': [ { 'EntriesPerPage': '100' } ]
-//
-// for repeatable fields, use an array value (see below)
-//
 var buildXmlInput = function buildXmlInput(opType, params) {
-  var xmlBuilder = require('xml');
-  
-  var data = {}, top;
-  
+ 
+  var jstoxml = require('jstoxml'); 
+  var data = [];
+
+  if (typeof params.authToken !== 'undefined') {
+    params.RequesterCredentials = { 'eBayAuthToken' : params.authToken };
+    delete params.authToken;
+  }
+ 
   switch(opType) {
     // @todo others might have different top levels...
     case 'GetOrders':
     default:
-      data[opType + 'Request'] = [];      // e.g. <GetOrdersRequest>
-      top = data[opType + 'Request'];
-      top.push({ '_attr' : { 'xmlns' : "urn:ebay:apis:eBLBaseComponents" } });      
+      data.push({ '_name' : opType + 'Request', '_content': params, '_attrs': { 'xmlns' : "urn:ebay:apis:eBLBaseComponents" } });      
   }
-  
-  if (typeof params.authToken !== 'undefined') {
-    top.push({ 'RequesterCredentials' : [ { 'eBayAuthToken' : params.authToken } ] });
-    delete params.authToken;
-  }
-  
-  // for repeatable fields, use array values.
-  // to keep this simpler, treat everything as an array value.
-  _(params).each(function(values, key) {
-    if (!_.isArray(values)) values = [values];
-    
-    _(values).each(function(value){
-      var el = {};
-      el[key] = value;
-      top.push(el);      
-    });
-  });
-
-  // console.log(util.inspect(data,true,10));
-  data = [ data ];
-
-  return '<?xml version="1.0" encoding="UTF-8"?>' + "\n" + xmlBuilder(data, true);
+ 
+  var xmlRequest = jstoxml.toXML(data);
+  //console.log(xmlRequest); 
+  return '<? version="1.0" encoding="UTF-8" ?>' + xmlRequest; 
 };
 
 
@@ -222,7 +201,7 @@ var defaultParams = function defaultParams(options) {
       params = {
         'X-EBAY-API-CALL-NAME' : options.opType,
         'X-EBAY-API-COMPATIBILITY-LEVEL' : '775',
-        'X-EBAY-API-SITEID' : '0', // US
+        'X-EBAY-API-SITEID' : '71', // US
         'X-EBAY-API-DEV-NAME': options.devName,
         'X-EBAY-API-CERT-NAME': options.cert,
         'X-EBAY-API-APP-NAME': options.appName
@@ -356,7 +335,6 @@ var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
   
   // converts XML to JSON by default, but can also return raw XML
   options.rawXml = options.rawXml || false;
-
   
   // app/auth params go into headers (see defaultParams())
   options.reqOptions.headers = options.reqOptions.headers || {};
@@ -364,15 +342,17 @@ var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
   // console.dir(options);
 
   var url = buildRequestUrl(options.serviceName, {}, {}, options.sandbox);
-  // console.log('URL:', url);
+  //console.log('URL:', url);
   
+  //console.log('buildXmlInput with:', JSON.stringify(options.params, undefined, 2));
   options.reqOptions.data = buildXmlInput(options.opType, options.params);
-  // console.log(options.reqOptions.data);
+  //console.log(options.reqOptions.data);
   
   var request = restler.post(url, options.reqOptions);
   
   request.on('complete', function(result, response) {
     if (result instanceof Error) {
+      console.log("Error");
       var error = result;
       error.message = "Completed with error: " + error.message;
       return callback(error);
@@ -380,7 +360,6 @@ var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
     else if (response.statusCode !== 200) {
       return callback(new Error(util.format("Bad response status code", response.statusCode, result.toString())));
     }
-    
     // raw XML wanted?
     if (options.rawXml) {
       return callback(null, result);
@@ -406,7 +385,6 @@ var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
       function parseData(data, next) {
         //// @todo parse the response
         // options.parser(data, next);
-        
         next(null, data);
       }
       
@@ -574,7 +552,7 @@ var isArrayOfValuePairs = function isArrayOfValuePairs(el) {
 // extract an array of items from responses. differs by query type.
 // @todo build this out as more queries are added...
 var parseItemsFromResponse = function parseItemsFromResponse(data, callback) {
-  // console.log('parse data', data);
+  //console.log('parse data', data);
   
   var items = [];
   try {
