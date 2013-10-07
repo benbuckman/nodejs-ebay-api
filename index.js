@@ -264,7 +264,7 @@ var ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
   var data;
 
   // emitted when the request has finished whether it was successful or not
-  request.on('complete', function(result, response) {
+  request.once('complete', function(result, response) {
     // [restler docs] 'If some error has occurred, result is always instance of Error'
     if (result instanceof Error) {
       var error = result;
@@ -372,7 +372,7 @@ var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
   
   var request = restler.post(url, options.reqOptions);
   
-  request.on('complete', function(result, response) {
+  request.once('complete', function(result, response) {
     if (result instanceof Error) {
       var error = result;
       error.message = "Completed with error: " + error.message;
