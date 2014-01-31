@@ -155,17 +155,68 @@ var buildXmlInput = function buildXmlInput(opType, params) {
     delete params.authToken;
   }
   
-  // for repeatable fields, use array values.
-  // to keep this simpler, treat everything as an array value.
-  _(params).each(function(values, key) {
-    if (!_.isArray(values)) values = [values];
-    
-    _(values).each(function(value){
-      var el = {};
-      el[key] = value;
-      top.push(el);      
-    });
-  });
+  var usexml2json = false;
+  if (typeof params.from_xml2json !== 'undefined') {
+	  usexml2json = true;
+	  delete params.from_xml2json;
+  }
+  var cdataexpr = false;
+  var rexpr = undefined;
+  if (typeof params.transformToCDATA !== 'undefined') {
+	  cdataexpr = true;
+	  rexpr = params.transformToCDATA;
+	  delete params.transformToCDATA;
+  }
+
+  // This is a recursive version (that work with xml2json)
+  function convertObjToArray(value) {
+	  if(typeof value == 'object') {
+		  if (!_.isArray(value)) {
+			  values = [value];
+		  } else {
+			  //return value;
+		  }
+		  var theArr = [];
+		  lastWasSimpleType = false;
+		  _(value).each(function(v, key){
+			  if (_.isArray(v)) {
+				  _(v).each(function(v){
+					  var el = {};
+					  el[key] = convertObjToArray(v);
+					  theArr.push(el);
+				  });
+			  } else {
+				  var el = {};
+				  el[key] = convertObjToArray(v);
+				  theArr.push(el);
+			  }
+		  });
+		  return theArr; 
+	  } else {
+		  if(typeof value == 'string' && cdataexpr && rexpr.test(value)) {
+			  return {_cdata:value};
+		  }
+		  return value;
+	  }
+  }
+  if(usexml2json) {
+  var others = convertObjToArray(params);
+  	_(others).each(function(values,key) {
+  		top.push(values);
+  	});
+  } else {
+	  //for repeatable fields, use array values.
+	  // to keep this simpler, treat everything as an array value.
+	  _(params).each(function(values, key) {
+		  if (!_.isArray(values)) values = [values];
+
+		  _(values).each(function(value){
+			  var el = {};
+			  el[key] = value;
+			  top.push(el);      
+		  });
+	  });
+  }
 
   // console.log(util.inspect(data,true,10));
   data = [ data ];
