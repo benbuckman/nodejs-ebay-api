@@ -173,11 +173,8 @@ var buildXmlInput = function buildXmlInput(opType, params) {
 	  if(typeof value == 'object') {
 		  if (!_.isArray(value)) {
 			  values = [value];
-		  } else {
-			  //return value;
 		  }
 		  var theArr = [];
-		  lastWasSimpleType = false;
 		  _(value).each(function(v, key){
 			  if (_.isArray(v)) {
 				  _(v).each(function(v){
@@ -200,7 +197,7 @@ var buildXmlInput = function buildXmlInput(opType, params) {
 	  }
   }
   if(usexml2json) {
-  var others = convertObjToArray(params);
+  	var others = convertObjToArray(params);
   	_(others).each(function(values,key) {
   		top.push(values);
   	});
