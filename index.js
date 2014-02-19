@@ -1,6 +1,6 @@
 // eBay API client for Node.js
 
-var restler = require('restler'),
+var requestModule = require('request'),
     _ = require('underscore'),
     util = require('util'),
     async = require('async');
@@ -260,16 +260,11 @@ var ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
   var url = buildRequestUrl(options.serviceName, options.params, options.filters, options.sandbox);
   // console.log('url for', options.opType, 'request:\n', url.replace(/\&/g, '\n&'));
   
-  var request = restler.get(url, options.reqOptions);
-  var data;
+  var request = requestModule.get({'url':url, 'headers': options.reqOptions}, function(error, response, result) {
+    var data;
 
-  // emitted when the request has finished whether it was successful or not
-  request.once('complete', function(result, response) {
-    // [restler docs] 'If some error has occurred, result is always instance of Error'
-    if (result instanceof Error) {
-      var error = result;
+    if (error) {
       error.message = "Completed with error: " + error.message;
-      return callback(error);
     }
     else if (response.statusCode !== 200) {
       return callback(new Error(util.format("Bad response status code", response.statusCode, result.toString())));
@@ -318,23 +313,6 @@ var ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
     });
   });
 
-
-  // emitted when some errors have occurred
-  // either this OR 'completed' should fire
-  request.on('error', function(error, response) {
-    error.message = "Request error: " + error.message;
-    callback(error);
-  });
-
-  // emitted when the request was successful
-  // -- overlaps w/ 'completed', don't use
-  // request.on('success', function(data, response) {
-  // });
-
-  // emitted when the request was successful, but 4xx status code returned
-  // -- overlaps w/ 'completed', don't use
-  // request.on('fail', function(data, response) {
-  // });
   
 };
 module.exports.ebayApiGetRequest = ebayApiGetRequest;
@@ -370,9 +348,7 @@ var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
   options.reqOptions.data = buildXmlInput(options.opType, options.params);
   // console.log(options.reqOptions.data);
   
-  var request = restler.post(url, options.reqOptions);
-  
-  request.once('complete', function(result, response) {
+  var request = requestModule.post({'url': url, 'headers': options.reqOptions}, function(error, response, result) {
     if (result instanceof Error) {
       var error = result;
       error.message = "Completed with error: " + error.message;
@@ -417,13 +393,6 @@ var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
       callback(null, data);
     });
     
-  });
-
-  // emitted when some errors have occurred
-  // either this OR 'completed' should fire
-  request.on('error', function(error, response) {
-    error.message = "Request error: " + error.message;
-    callback(error);
   });
 };
 module.exports.ebayApiPostXmlRequest = ebayApiPostXmlRequest;
