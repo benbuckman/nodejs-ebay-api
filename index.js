@@ -162,7 +162,16 @@ var buildXmlInput = function buildXmlInput(opType, params) {
     
     _(values).each(function(value){
       var el = {};
-      el[key] = value;
+      if (_.isObject(value)) {
+        el[key] = [];
+        _(value).each(function(values2, key2) {
+          var el2 = {};
+          el2[key2] = values2;
+          el[key].push(el2);
+        });
+      } else {
+        el[key] = value;
+      }
       top.push(el);      
     });
   });
