@@ -1,9 +1,13 @@
 eBay API client for Node.js
 ===============
 
-## Background
+## Intro
 
-This was built to power the "eBay Picks" section of [AntiquesNearMe.com](http://antiquesnearme.com). It can currently query the FindingService, MerchandisingService, and Shopping API via JSON-GET requests, and the Trading API via XML-POST. Other services can be added as needed. (Pull requests welcome!)
+This module can currently query eBay's FindingService, MerchandisingService, and Shopping API via JSON-GET requests, and the Trading API via XML-POST.
+Other services can be added as needed.
+
+Pull requests are welcome!
+
 
 ## To use
 
