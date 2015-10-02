@@ -1,7 +1,7 @@
 // eBay API client for Node.js
 
 var requestModule = require('request'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     util = require('util'),
     async = require('async');
 
