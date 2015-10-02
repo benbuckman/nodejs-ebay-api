@@ -11,23 +11,37 @@ var request = require('request'),
 // param usage:
 //  - use null values for plain params
 //  - use arrays for repeating keys
-var buildUrlParams = function buildUrlParams(params) {
-  var urlFilters = [];  // string parts to be joined
-  
-  // (force each to be string w/ ''+var)
-  _(params).each(function(value, key) {
-    if (value === null) urlFilters.push('' + key);
-    else if (_.isArray(value)) {
-      _(value).each(function(subValue, subInd) {
-        urlFilters.push('' + key + '(' + subInd + ')' + "=" + subValue);
-      });
-    }
-    else urlFilters.push( '' + key + "=" + value );
-  });
-  
-  return urlFilters.join('&');
-};
+function buildUrlParams(obj, prefix) {
+  var i, k, keys, str, _fn, _i, _j, _len, _len1;
+  str = [];
+  if (typeof prefix === "undefined") {
+    prefix = "";
+  }
+  if (obj === null) { return prefix; }
 
+  if (obj.constructor.toString().match(/^function\sarray/i)) {
+    _fn = function(o) {
+      return str.push(buildUrlParams(o, prefix + "(" + i + ")"));
+    };
+    for (i = _i = 0, _len = obj.length; _i < _len; i = ++_i) {
+      k = obj[i];
+      _fn(k);
+    }
+  } else if (obj.constructor.toString().match(/^function\sobject/i)) {
+    if (prefix !== "") {
+      prefix += ".";
+    }
+    keys = Object.keys(obj);
+    for (i = _j = 0, _len1 = keys.length; _j < _len1; i = ++_j) {
+      k = keys[i];
+      str.push(buildUrlParams(obj[k], prefix + k));
+    }
+  } else {
+    str.push(prefix + "=" + obj);
+    console.log( prefix + " = " + obj);
+  }
+  return str.join("&");
+};
 
 
 // [helper] constructor for an 'itemFilter' filter (used by the Finding Service)
@@ -90,6 +104,13 @@ exports.buildRequestUrl = function buildRequestUrl(serviceName, params, filters,
       else url = "https://svcs.ebay.com/services/search/" + serviceName + "/v1?";
       break;
       
+    case 'ProductService':
+      if (sandbox) {
+        url = "http://svcs.sandbox.ebay.com/services/marketplacecatalog/" + serviceName + "/v1?";
+      } else
+        url = "http://svcs.ebay.com/services/marketplacecatalog/" + serviceName + "/v1?";
+      break;
+
     case 'Shopping':
       if (sandbox) {
         // url =   // @todo
@@ -188,6 +209,16 @@ var defaultParams = function defaultParams(options) {
       'X-EBAY-SOA-SERVICE-VERSION': options.version ? options.version : '1.11.0',
       'X-EBAY-SOA-OPERATION-NAME': options.opType
     },
+    'ProductService': {
+      'SERVICE-NAME': options.opType,
+      'SECURITY-APPNAME': options.appId ? options.appId : null,
+      // based on response data
+      'SERVICE-VERSION': options.version ? options.version : '1.5.0',
+      'OPERATION-NAME': options.opType,
+      'GLOBAL-ID': options.globalId ? options.globalId : 'EBAY-US',
+      'RESPONSE-DATA-FORMAT': 'JSON',
+      'REST-PAYLOAD': null     // (not sure what this does)
+    },
     'MerchandisingService': {
       'SERVICE-NAME': options.serviceName,
       'CONSUMER-ID': options.appId ? options.appId : null,
@@ -239,10 +270,13 @@ exports.ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
   }
   
   // fill in default params. explicit options above will override defaults.
-  _.defaults(options.params, defaultParams(options));
-  
-  var url = buildRequestUrl(options.serviceName, options.params, options.filters, options.sandbox);
-  // console.log('url for', options.opType, 'request:\n', url.replace(/\&/g, '\n&'));
+  var params = _.extend({}, defaultParams(options));
+  _.extend(params, options.params);
+  console.dir(params);
+
+  var url = buildRequestUrl(options.serviceName, params, options.filters, options.sandbox);
+
+  console.log('url for', options.opType, 'request:\n', url.replace(/\&/g, '\n&'));
   
   var request = request.get({'url':url, 'headers': options.reqOptions}, function(error, response, result) {
     var data;
