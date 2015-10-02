@@ -1,6 +1,6 @@
 // eBay API client for Node.js
 
-var requestModule = require('request'),
+var request = require('request'),
     _ = require('lodash'),
     util = require('util'),
     async = require('async');
@@ -31,7 +31,7 @@ var buildUrlParams = function buildUrlParams(params) {
 
 
 // [helper] constructor for an 'itemFilter' filter (used by the Finding Service)
-module.exports.ItemFilter = function ItemFilter(name, value, paramName, paramValue) {
+exports.ItemFilter = function ItemFilter(name, value, paramName, paramValue) {
   // required
   this.name = name;
   this.value = value;
@@ -45,7 +45,7 @@ module.exports.ItemFilter = function ItemFilter(name, value, paramName, paramVal
 
 // [internal] convert a filters array to a url string
 // adapted from client-side JS example in ebay docs
-var buildFilters = function buildFilters(filterType, filters) {
+function buildFilters(filterType, filters) {
   var urlFilter = '';
   _(filters).each(function eachItemFilter(filter, filterInd) {    
     // each parameter in each item filter
@@ -74,7 +74,7 @@ var buildFilters = function buildFilters(filterType, filters) {
 // - params is a 1D obj
 // - filters is an obj of { filterType:[filters] } (where filters is an array of ItemFilter)
 // params,filters only apply to GET requests; for POST pass in empty {} or null
-var buildRequestUrl = function buildRequestUrl(serviceName, params, filters, sandbox) {
+exports.buildRequestUrl = function buildRequestUrl(serviceName, params, filters, sandbox) {
   var url;
   
   params = params || {};
@@ -123,7 +123,6 @@ var buildRequestUrl = function buildRequestUrl(serviceName, params, filters, san
   
   return url;
 };
-module.exports.buildRequestUrl = buildRequestUrl;
 
 
 
@@ -222,7 +221,7 @@ var defaultParams = function defaultParams(options) {
 
 
 // make a single GET request to a JSON service
-var ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
+exports.ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
   if (! options.serviceName) return callback(new Error("Missing serviceName"));
   if (! options.opType) return callback(new Error("Missing opType"));
   if (! options.appId) return callback(new Error("Missing appId"));
@@ -245,7 +244,7 @@ var ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
   var url = buildRequestUrl(options.serviceName, options.params, options.filters, options.sandbox);
   // console.log('url for', options.opType, 'request:\n', url.replace(/\&/g, '\n&'));
   
-  var request = requestModule.get({'url':url, 'headers': options.reqOptions}, function(error, response, result) {
+  var request = request.get({'url':url, 'headers': options.reqOptions}, function(error, response, result) {
     var data;
 
     if (error) {
@@ -297,15 +296,11 @@ var ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
       callback(error, items);
     });
   });
-
-  
 };
-module.exports.ebayApiGetRequest = ebayApiGetRequest;
-
 
 
 // make a single POST request to an XML service
-var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
+exports.ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
   if (! options.serviceName) return callback(new Error("Missing serviceName"));
   if (! options.opType) return callback(new Error("Missing opType"));
   
@@ -333,7 +328,7 @@ var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
   options.reqOptions.data = buildXmlInput(options.opType, options.params);
   // console.log(options.reqOptions.data);
   
-  var request = requestModule.post({'url': url, 'headers': options.reqOptions}, function(error, response, result) {
+  var request = request.post({'url': url, 'headers': options.reqOptions}, function(error, response, result) {
     if (result instanceof Error) {
       var error = result;
       error.message = "Completed with error: " + error.message;
@@ -380,12 +375,10 @@ var ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback) {
     
   });
 };
-module.exports.ebayApiPostXmlRequest = ebayApiPostXmlRequest;
-
 
 
 // PAGINATE multiple GET/JSON requests in parallel (max 100 per page, 100 pages = 10k items)
-var paginateGetRequest = function paginateGetRequest(options, callback) {
+exports.paginateGetRequest = function paginateGetRequest(options, callback) {
   if (! options.serviceName) return callback(new Error("Missing serviceName"));
   if (! options.opType) return callback(new Error("Missing opType"));
   if (! options.appId) return callback(new Error("Missing appId"));
@@ -451,14 +444,12 @@ var paginateGetRequest = function paginateGetRequest(options, callback) {
       else callback(null, mergedItems);
     }
   );  //forEach
-  
 };
-module.exports.paginateGetRequest = paginateGetRequest;
 
 
 // helper: RECURSIVELY turn 1-element arrays/objects into flat vars
 // (different from _.flatten() which returns an array)
-var flatten = function flatten(el, iter) {
+exports.flatten = function flatten(el, iter) {
   // sanity check
   if (_.isUndefined(iter)) var iter = 1;
   if (iter > 100) {
@@ -499,13 +490,12 @@ var flatten = function flatten(el, iter) {
     
   return el;
 };
-module.exports.flatten = flatten;
 
 
 // helper: identify a structure returned from the API:
 // { @key:KEY, __value__:VALUE } => want to turn into { KEY: VALUE }
 // (and array of these into single obj)
-var isValuePair = function isValuePair(el) {
+function isValuePair(el) {
   if (_.isObject(el) && _.size(el) === 2) {
     var keys = _.keys(el);
     if (new RegExp(/^@/).test(keys[0]) && keys[1] === '__value__') {
@@ -518,7 +508,7 @@ var isValuePair = function isValuePair(el) {
 
 // helper: find an array containing only special key-value pairs
 // e.g. 'galleryURL' (makes it easier to handle in MongoDB)
-var isArrayOfValuePairs = function isArrayOfValuePairs(el) {
+function isArrayOfValuePairs(el) {
   if (_.isArray(el)) {
     if (_.all(el, isValuePair)) return true;
   }
@@ -528,7 +518,7 @@ var isArrayOfValuePairs = function isArrayOfValuePairs(el) {
 
 // extract an array of items from responses. differs by query type.
 // @todo build this out as more queries are added...
-var parseItemsFromResponse = function parseItemsFromResponse(data, callback) {
+exports.parseItemsFromResponse = function parseItemsFromResponse(data, callback) {
   // console.log('parse data', data);
   
   var items = [];
@@ -567,14 +557,12 @@ var parseItemsFromResponse = function parseItemsFromResponse(data, callback) {
   
   callback(null, items);
 };
-module.exports.parseItemsFromResponse = parseItemsFromResponse;
-
 
 
 // check if an item URL is an affiliate URL
 // non-affil URLs look like 'http://www.ebay.com...', affil URLs look like 'http://rover.ebay.com/rover...'
 //  and have param &campid=TRACKINGID (campid=1234567890)
-module.exports.checkAffiliateUrl = function checkAffiliateUrl(url) {
+exports.checkAffiliateUrl = function checkAffiliateUrl(url) {
   var regexAffil = /http\:\/\/rover\.ebay\.com\/rover/,
       regexNonAffil = /http\:\/\/www\.ebay\.com/,
       regexCampaign = /campid=[0-9]{5}/;
@@ -586,7 +574,7 @@ module.exports.checkAffiliateUrl = function checkAffiliateUrl(url) {
 
 // check the latest API versions (to update the code accordingly)
 // callback gets hash of APIs:versions
-module.exports.getLatestApiVersions = function getLatestApiVersions(options, callback) {
+exports.getLatestApiVersions = function getLatestApiVersions(options, callback) {
   var versionParser = function versionParser(data, callback) {
     callback(null, data.version);
   };
