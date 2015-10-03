@@ -1,150 +1,15 @@
 // eBay API client for Node.js
 
-var request = require('request'),
-    _ = require('lodash'),
-    util = require('util'),
-    async = require('async');
+var
+  request = require('request'),
+  _ = require('lodash'),
+  util = require('util'),
+  async = require('async'),
+  parseItemsFromResponse = require('./lib/parser').parseItemsFromResponse,
+  buildRequestUrl = require('./lib/urls').buildRequestUrl;
 
 
-// [internal] convert params hash to url string.
-// some items may be arrays, use key(0)..(n)
-// param usage:
-//  - use null values for plain params
-//  - use arrays for repeating keys
-function buildUrlParams(obj, prefix) {
-  var i, k, keys, str, _fn, _i, _j, _len, _len1;
-  str = [];
-  if (typeof prefix === "undefined") {
-    prefix = "";
-  }
-  if (obj === null) { return prefix; }
-
-  if (obj.constructor.toString().match(/^function\sarray/i)) {
-    _fn = function(o) {
-      return str.push(buildUrlParams(o, prefix + "(" + i + ")"));
-    };
-    for (i = _i = 0, _len = obj.length; _i < _len; i = ++_i) {
-      k = obj[i];
-      _fn(k);
-    }
-  } else if (obj.constructor.toString().match(/^function\sobject/i)) {
-    if (prefix !== "") {
-      prefix += ".";
-    }
-    keys = Object.keys(obj);
-    for (i = _j = 0, _len1 = keys.length; _j < _len1; i = ++_j) {
-      k = keys[i];
-      str.push(buildUrlParams(obj[k], prefix + k));
-    }
-  } else {
-    str.push(prefix + "=" + obj);
-    console.log( prefix + " = " + obj);
-  }
-  return str.join("&");
-};
-
-
-// [helper] constructor for an 'itemFilter' filter (used by the Finding Service)
-exports.ItemFilter = function ItemFilter(name, value, paramName, paramValue) {
-  // required
-  this.name = name;
-  this.value = value;
-  
-  // optional
-  this.paramName = _.isUndefined(paramName) ? '' : paramName;
-  this.paramValue = _.isUndefined(paramValue) ? '' : paramValue;
-};
-
-
-
-// [internal] convert a filters array to a url string
-// adapted from client-side JS example in ebay docs
-function buildFilters(filterType, filters) {
-  var urlFilter = '';
-  _(filters).each(function eachItemFilter(filter, filterInd) {    
-    // each parameter in each item filter
-    _(filter).each(function eachItemParam(paramVal, paramKey) {
-      // Check to see if the paramter has a value (some don't)
-      if (paramVal !== "") {        
-        // multi-value param
-        if (_.isArray(paramVal)) {
-          _(paramVal).each(function eachSubFilter(paramSubVal, paramSubIndex) {
-            urlFilter += '&' + filterType + '(' + filterInd + ').' + paramKey + '(' + paramSubIndex + ')=' + paramSubVal;
-          });
-        }
-        // single-value param
-        else {
-          urlFilter += '&' + filterType + '(' + filterInd + ').' + paramKey + '=' + paramVal;
-        }
-      }
-    });
-  });  
-  return urlFilter;
-};
-
-
-// build URL to API endpoints
-// set sandbox=true for sandbox, otherwise production
-// - params is a 1D obj
-// - filters is an obj of { filterType:[filters] } (where filters is an array of ItemFilter)
-// params,filters only apply to GET requests; for POST pass in empty {} or null
-exports.buildRequestUrl = function buildRequestUrl(serviceName, params, filters, sandbox) {
-  var url;
-  
-  params = params || {};
-  filters = filters || {};
-  sandbox = (typeof sandbox === 'boolean') ? sandbox : false;
-  
-  switch (serviceName) {
-    case 'Finding':
-      if (sandbox) {
-        // url =   // @todo
-        throw new Error("Sandbox endpoint for FindingService not yet implemented. Please add.");
-      }
-      else url = "https://svcs.ebay.com/services/search/" + serviceName + "/v1?";
-      break;
-      
-    case 'Product':
-      if (sandbox) {
-        url = "http://svcs.sandbox.ebay.com/services/marketplacecatalog/" + serviceName + "/v1?";
-      } else
-        url = "http://svcs.ebay.com/services/marketplacecatalog/" + serviceName + "/v1?";
-      break;
-
-    case 'Shopping':
-      if (sandbox) {
-        // url =   // @todo
-        throw new Error("Sandbox endpoint for Shopping service not yet implemented. Please add.");
-      }
-      else url = "http://open.api.ebay.com/shopping?";
-      break;
-    
-    
-    case 'Trading':   // ...and the other XML APIs
-      if (sandbox) url = 'https://api.sandbox.ebay.com/ws/api.dll';
-      else url = 'https://api.ebay.com/ws/api.dll';
-      
-      // params and filters don't apply to URLs w/ these
-      return url;
-      // break;
-    
-    default:
-      if (sandbox) {
-        // url =   // @todo
-        throw new Error("Sandbox endpoint for " + serviceName + " service not yet implemented. Please add.");
-      }
-      else url = "https://svcs.ebay.com/" + serviceName + '?';
-  }
-
-  url += buildUrlParams(params);     // no trailing &
-  
-  _(filters).each(function(typeFilters, type) {
-    url += buildFilters(type, typeFilters);     // each has leading &
-  });
-  
-  return url;
-};
-
+exports.ItemFilter = require('./lib/filters').ItemFilter;
 
 
 // build XML input for XML-POST requests
@@ -554,49 +419,6 @@ function isArrayOfValuePairs(el) {
     if (_.all(el, isValuePair)) return true;
   }
   return false;
-};
-
-
-// extract an array of items from responses. differs by query type.
-// @todo build this out as more queries are added...
-exports.parseItemsFromResponse = function parseItemsFromResponse(data, callback) {
-  // console.log('parse data', data);
-  
-  var items = [];
-  try {
-    if (typeof data.Item !== 'undefined') {       // e.g. for Shopping::GetSingleItem
-      items = [ data.Item ];    // preserve array for standardization (?)
-    }
-    
-    else if (typeof data.searchResult !== 'undefined') {    // e.g. for FindingService
-      // reduce in steps so successful-but-empty responses don't throw error
-      if (!_.isEmpty(data.searchResult)) {
-        data = _(data.searchResult).first();
-        if (typeof data !== 'undefined') {
-          if (typeof data.item !== 'undefined') {
-            items = data.item;
-          }
-        }
-      }
-    }
-    else if (typeof data.itemRecommendations !== 'undefined') {
-      if (typeof data.itemRecommendations !== 'undefined') {
-        if (typeof data.itemRecommendations.item !== 'undefined') {
-          items = _.isArray(data.itemRecommendations.item) ? data.itemRecommendations.item : [];
-        }
-      }
-    }
-
-    // recursively flatten 1-level arrays and "@key:__VALUE__" pairs
-    items = _(items).map(function(item) {
-      return flatten(item);
-    });
-  }
-  catch(error) {
-    callback(error);
-  }
-  
-  callback(null, items);
 };
 
 
