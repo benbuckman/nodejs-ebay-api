@@ -11,6 +11,7 @@
   "main": "index.js",
   "dependencies": {
     "async": "^1.4.2",
+    "debug": "^2.2.0",
     "lodash": "^3.10.1",
     "request": "^2.64.0",
     "xml": "^1.0.0",

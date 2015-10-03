@@ -4,7 +4,7 @@
 
 var ebay = require('../index.js');
 
-ebay.ebayApiPostXmlRequest({
+ebay.postXmlRequest({
   serviceName : 'Trading',
   opType : 'GetOrders',
   

@@ -23,7 +23,7 @@ filters.domainFilter = [
 ];
 
 
-ebay.ebayApiGetRequest({
+ebay.getRequest({
     serviceName: 'Finding',
     opType: 'findItemsByKeywords',
     appId: '......................',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
