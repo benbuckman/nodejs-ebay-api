@@ -278,7 +278,10 @@ exports.ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
 
   console.log('url for', options.opType, 'request:\n', url.replace(/\&/g, '\n&'));
   
-  var request = request.get({'url':url, 'headers': options.reqOptions}, function(error, response, result) {
+  request.get({
+    'url': url,
+    'headers': options.reqOptions.headers
+  }, function(error, response, result) {
     var data;
 
     if (error) {
@@ -362,8 +365,12 @@ exports.ebayApiPostXmlRequest = function ebayApiPostXmlRequest(options, callback
   options.reqOptions.data = buildXmlInput(options.opType, options.params);
   // console.log(options.reqOptions.data);
   
-  var request = request.post({'url': url, 'headers': options.reqOptions}, function(error, response, result) {
-    if (result instanceof Error) {
+  request.post({
+    'url': url,
+    'body': options.reqOptions.data,
+    'headers': options.reqOptions.headers
+  }, function(error, response, result) {
+      if (result instanceof Error) {
       var error = result;
       error.message = "Completed with error: " + error.message;
       return callback(error);
