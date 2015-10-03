@@ -24,7 +24,7 @@ filters.domainFilter = [
 
 
 ebay.ebayApiGetRequest({
-    serviceName: 'FindingService',
+    serviceName: 'Finding',
     opType: 'findItemsByKeywords',
     appId: '......................',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
     params: params,

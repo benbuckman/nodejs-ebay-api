@@ -96,7 +96,7 @@ exports.buildRequestUrl = function buildRequestUrl(serviceName, params, filters,
   sandbox = (typeof sandbox === 'boolean') ? sandbox : false;
   
   switch (serviceName) {
-    case 'FindingService':
+    case 'Finding':
       if (sandbox) {
         // url =   // @todo
         throw new Error("Sandbox endpoint for FindingService not yet implemented. Please add.");
@@ -104,7 +104,7 @@ exports.buildRequestUrl = function buildRequestUrl(serviceName, params, filters,
       else url = "https://svcs.ebay.com/services/search/" + serviceName + "/v1?";
       break;
       
-    case 'ProductService':
+    case 'Product':
       if (sandbox) {
         url = "http://svcs.sandbox.ebay.com/services/marketplacecatalog/" + serviceName + "/v1?";
       } else
@@ -201,7 +201,7 @@ var defaultParams = function defaultParams(options) {
   options = options || {};
   
   return {
-    'FindingService': {
+    'Finding': {
       'X-EBAY-SOA-SECURITY-APPNAME': options.appId ? options.appId : null,
       'X-EBAY-SOA-REQUEST-DATA-FORMAT': 'JSON',
       'X-EBAY-SOA-RESPONSE-DATA-FORMAT': 'JSON',
@@ -209,7 +209,7 @@ var defaultParams = function defaultParams(options) {
       'X-EBAY-SOA-SERVICE-VERSION': options.version ? options.version : '1.11.0',
       'X-EBAY-SOA-OPERATION-NAME': options.opType
     },
-    'ProductService': {
+    'Product': {
       'SERVICE-NAME': options.opType,
       'SECURITY-APPNAME': options.appId ? options.appId : null,
       // based on response data
@@ -265,7 +265,7 @@ exports.ebayApiGetRequest = function ebayApiGetRequest(options, callback) {
   
   options.raw = options.raw || false;
   
-  if (options.serviceName === 'MerchandisingService') {
+  if (options.serviceName === 'Merchandising') {
     options.reqOptions.decoding = 'buffer';   // otherwise fails to decode json. doesn't seem to be necessary w/ FindingService.
   }
   
@@ -632,8 +632,8 @@ exports.getLatestApiVersions = function getLatestApiVersions(options, callback) 
   };
   
   async.series({
-    'finding': async.apply(checkVersion, 'FindingService'),
-    'merchandising': async.apply(checkVersion, 'MerchandisingService'),
+    'finding': async.apply(checkVersion, 'Finding'),
+    'merchandising': async.apply(checkVersion, 'Merchandising'),
     // 'shopping': async.apply(checkVersion, 'Shopping'),   // doesn't have this call!
     // 'trading': async.apply(checkVersion, 'Trading')     // doesn't have this call!
     

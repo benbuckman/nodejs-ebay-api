@@ -32,7 +32,7 @@ var pages = 2,
     perPage = 3;     // max 100x100 (10k items)
 
 ebay.paginateGetRequest({
-    serviceName: 'FindingService',
+    serviceName: 'Finding',
     opType: 'findItemsAdvanced',
     appId: '......................',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
     params: params,
