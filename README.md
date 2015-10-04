@@ -39,7 +39,7 @@ Javascript is a little insane and a lot of fun.
 
 ## Methods
 
-### `ebayApiGetRequest(options, callback)`
+### `getRequest(options, callback)`
 
 Make an individual request to a GET service.
 `options` must contain:
@@ -84,7 +84,7 @@ Is used as the default `parser` option for `paginateGetRequest`.
 `callback` gets `(error, items)` where `items` are the items parsed from `data`.
 
 
-### `ebayApiPostXmlRequest(options, callback)`
+### `postXmlRequest(options, callback)`
 
 Make an individual request to a POST-XML service.
 `options` must contain:
@@ -128,14 +128,6 @@ Runs synchronously, returns flattened object.
 ### `ItemFilter(name, value, paramName, paramValue)`
 
 A class constructor to simplify creating filters. (See the examples)
-
-
-### `checkAffiliateUrl(url)`
-
-If you want your affiliate codes included in returned items (see the examples for how to do that), use this to verify that the URLs are of the right format.
-e.g. `checkAffiliateUrl(item.viewItemURL)`
-
-Returns boolean.
 
 
 ### `getLatestApiVersions(callback)`
