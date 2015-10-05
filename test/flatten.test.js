@@ -83,14 +83,35 @@ describe('flatten', function() {
         }]
       }]
     }, 1))
-      .to.deep.equal({
-        L1: {
-          d: 1,
-          L2: [{
-            d: 2
-          }]
-        }
-      });
+    .to.deep.equal({
+      L1: {
+        d: 1,
+        L2: [{
+          d: 2
+        }]
+      }
+    });
+  });
+
+  it('flattens silly `FooArray:Foo` structures', function() {
+    expect(flatten({
+      'ThingResponse': {
+        'OrderArray': [{
+          'Order': [
+            {OrderId: '123'},
+            {OrderId: '456'}
+          ]
+        }]
+      }
+    }))
+    .to.deep.equal({
+      'ThingResponse': {
+        'Orders': [
+          {OrderId: '123'},
+          {OrderId: '456'}
+        ]
+      }
+    });
   });
 
 
