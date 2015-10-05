@@ -39,7 +39,7 @@ ebay.paginateGetRequest({
     filters: filters,
     pages: pages,
     perPage: perPage,
-    parser: ebay.parseItemsFromResponse
+    parser: ebay.parseResponse
   },
   // gets all the items together in a merged array
   function allItemsCallback(error, items) {
