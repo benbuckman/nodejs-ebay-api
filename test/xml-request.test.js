@@ -9,9 +9,9 @@ var
   request = require('request'),
   xmlRequest = require('../index').xmlRequest;
 
-describe('GET request to Shopping service', function() {
+describe('XML requests', function() {
   beforeEach(function() {
-    sinon.stub(request, 'get', function(options, callback) {
+    sinon.stub(request, 'post', function(options, callback) {
       process.nextTick(function() {
         callback(null, {statusCode: 200}, {});
       });
@@ -19,10 +19,10 @@ describe('GET request to Shopping service', function() {
   });
 
   afterEach(function() {
-    request.get.restore();
+    request.post.restore();
   });
 
-  describe('GetSingleItem', function() {
+  describe('Shopping: GetSingleItem', function() {
     beforeEach('build request', function() {
       xmlRequest({
         serviceName: 'Shopping',
@@ -42,11 +42,12 @@ describe('GET request to Shopping service', function() {
     });
 
     it('initiated request with expected parameters', function() {
-      expect(request.get).to.have.been.calledOnce;
+      expect(request.post).to.have.been.calledOnce;
 
-      expect(request.get.lastCall.args[0]).to.deep.equal({
+      expect(request.post.lastCall.args[0]).to.deep.equal({
         url: 'http://open.api.sandbox.ebay.com/shopping?',
         headers: {
+          'Content-Type': 'text/xml',
           'X-EBAY-API-APP-ID': 'ABCDEF',
           'X-EBAY-API-CALL-NAME': 'GetSingleItem',
           'X-EBAY-API-VERSION': '897',
@@ -63,7 +64,7 @@ describe('GET request to Shopping service', function() {
     })
   });
 
-  describe('GetMultipleItems', function() {
+  describe('Shopping: GetMultipleItems', function() {
     beforeEach('build request', function() {
       xmlRequest({
         serviceName: 'Shopping',
@@ -78,9 +79,9 @@ describe('GET request to Shopping service', function() {
     });
 
     it('handles multiple parameter values', function() {
-      expect(request.get).to.have.been.calledOnce;
+      expect(request.post).to.have.been.calledOnce;
 
-      expect(request.get.lastCall.args[0]).to.have.property('body',
+      expect(request.post.lastCall.args[0]).to.have.property('body',
        '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<GetMultipleItemsRequest xmlns="urn:ebay:apis:eBLBaseComponents">\n' +
         '    <ItemID>123456</ItemID>\n' +
@@ -89,6 +90,36 @@ describe('GET request to Shopping service', function() {
       );
     })
   });
+
+
+  describe('Trading: GetOrders (authenticated)', function() {
+    beforeEach('build request', function() {
+      xmlRequest({
+        serviceName: 'Trading',
+        opType: 'GetOrders',
+        sandbox: true,
+        appId: 'ABCDEF',
+        authToken: 'super-secret',
+        raw: true,  // no parsing
+        params: {
+          'NumberOfDays': '30'
+        }
+      }, function noop(){});
+    });
+
+    it('adds token to XML request', function() {
+      expect(request.post.lastCall.args[0]).to.have.property('body',
+        '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        '<GetOrdersRequest xmlns="urn:ebay:apis:eBLBaseComponents">\n' +
+        '    <RequesterCredentials>\n' +
+        '        <eBayAuthToken>super-secret</eBayAuthToken>\n' +
+        '    </RequesterCredentials>\n' +
+        '    <NumberOfDays>30</NumberOfDays>\n' +
+        '</GetOrdersRequest>'
+      );
+    });
+  });
+
 
   describe.skip('nested params', function() {
     // @REVIEW does this need to be supported?
@@ -108,7 +139,7 @@ describe('GET request to Shopping service', function() {
     });
 
     it('nests params in XML', function() {
-      expect(request.get.lastCall.args[0]).to.have.property('body',
+      expect(request.post.lastCall.args[0]).to.have.property('body',
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<SomeOpRequest xmlns="urn:ebay:apis:eBLBaseComponents">\n' +
         '    <L1>\n' +

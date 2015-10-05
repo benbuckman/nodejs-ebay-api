@@ -23,6 +23,9 @@
     "sinon": "^1.17.1",
     "sinon-chai": "^2.8.0"
   },
+  "scripts": {
+    "test": "mocha"
+  },
   "engines": {
     "node": ">= 0.6"
   }
