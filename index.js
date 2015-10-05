@@ -1,8 +1,6 @@
 // eBay API client for Node.js
 
-exports.postXmlRequest = require('./lib/post-xml-request').postXmlRequest;
-
-exports.getRequest = require('./lib/get-request').getRequest;
+exports.xmlRequest = require('./lib/xml-request').xmlRequest;
 
 exports.paginateGetRequest = require('./lib/pagination').paginateGetRequest;
 

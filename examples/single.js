@@ -22,8 +22,7 @@ filters.domainFilter = [
   new ebay.ItemFilter("domainName", "Digital_Cameras")
 ];
 
-
-ebay.getRequest({
+ebay.xmlRequest({
     serviceName: 'Finding',
     opType: 'findItemsByKeywords',
     appId: '......................',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI

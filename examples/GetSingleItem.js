@@ -3,7 +3,7 @@
 
 var ebay = require('../index.js');
 
-ebay.getRequest({
+ebay.xmlRequest({
   'serviceName': 'Shopping',
   'opType': 'GetSingleItem',
   'appId': '......................',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI

@@ -4,7 +4,7 @@
 
 var ebay = require('../index.js');
 
-ebay.postXmlRequest({
+ebay.xmlRequest({
   serviceName : 'Trading',
   opType : 'GetOrders',
   
@@ -19,7 +19,6 @@ ebay.postXmlRequest({
     'OrderStatus': 'Active',
     'NumberOfDays': 1
   }
-  
 }, function(error, results) {
   if (error) {
     console.dir(error);
