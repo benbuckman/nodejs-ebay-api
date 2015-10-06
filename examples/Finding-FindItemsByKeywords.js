@@ -4,32 +4,31 @@
 
 var ebay = require('../index.js');
 
-var params = {};
+var params = {
+  keywords: ["Canon", "Powershot"],
 
-params.keywords = [ "Canon", "Powershot" ];
+  // add additional fields
+  outputSelector: ['AspectHistogram'],
 
-// add additional fields
-params.outputSelector = [ 'AspectHistogram' ];
+  paginationInput: {
+    entriesPerPage: 10
+  },
 
-params['paginationInput.entriesPerPage'] = 10;
+  itemFilter: [
+    {name: 'FreeShippingOnly', value: true},
+    {name: 'MaxPrice', value: '150'}
+  ],
 
-
-var filters = {};
-
-filters.itemFilter = [
-  new ebay.ItemFilter("FreeShippingOnly", true)
-];
-
-filters.domainFilter = [
-  new ebay.ItemFilter("domainName", "Digital_Cameras")
-];
+  domainFilter: [
+    {name: 'domainName', value: 'Digital_Cameras'}
+  ]
+};
 
 ebay.xmlRequest({
     serviceName: 'Finding',
     opType: 'findItemsByKeywords',
     appId: '......................',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
     params: params,
-    filters: filters,
     parser: ebay.parseResponse    // (default)
   },
   // gets all the items together in a merged array

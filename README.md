@@ -59,7 +59,6 @@ Makes an XML POST to an eBay API endpoints.
 and can optionally contain:
 
   - `params`: (see examples and API documentation)
-  - `filters`: (see examples and API documentation.)
   - `reqOptions`: passed to the [request](https://github.com/request/request) module, 
     e.g. for additional `headers`, or `timeout`.
   - `parser`: function which takes the response data and extracts items (or other units depending on the query). 
@@ -118,11 +117,6 @@ Runs synchronously, returns flattened object.
 The default parser will `flatten()` the response to a finite depth
 (because infinite recursion on an indeterminate response size would cause an unnecessary performance hit).  
 If you want to flatten further, use this method directly.
-
-
-### `ItemFilter(name, value, paramName, paramValue)`
-
-A class constructor to simplify creating filters. (See the examples)
 
 
 ### `getLatestApiVersions(callback)`
