@@ -121,42 +121,71 @@ describe('XML requests', function() {
   });
 
 
-  describe.skip('nested params', function() {
-    // @REVIEW does this need to be supported?
-
+  describe('nested params', function() {
     beforeEach('build request', function() {
       xmlRequest({
-        serviceName: 'Shopping',
-        opType: 'SomeOp',
+        serviceName: 'Trading',
+        opType: 'GetOrderTransactions',
         appId: 'ABCDEF',
         raw: true,  // no parsing
         params: {
-          'L1': {
-            'L2': 'foo'
-          }
+          'ItemTransactionIDArray': [{
+            'ItemTransactionID': {
+              'OrderLineItemID': '12345-67890'
+            }
+          }]
         }
       }, function noop(){});
     });
 
-    it('nests params in XML', function() {
+    it('converts properly to nested XML', function() {
       expect(request.post.lastCall.args[0]).to.have.property('body',
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
-        '<SomeOpRequest xmlns="urn:ebay:apis:eBLBaseComponents">\n' +
-        '    <L1>\n' +
-        '        <L2>foo</L2>\n' +
-        '    </L1>\n' +
-        '</SomeOpRequest>'
+        '<GetOrderTransactionsRequest xmlns="urn:ebay:apis:eBLBaseComponents">\n' +
+        '    <ItemTransactionIDArray>\n' +
+        '        <ItemTransactionID>\n' +
+        '            <OrderLineItemID>12345-67890</OrderLineItemID>\n' +
+        '        </ItemTransactionID>\n' +
+        '    </ItemTransactionIDArray>\n' +
+        '</GetOrderTransactionsRequest>'
       );
     })
   });
+});
 
 
+// @TODO try to hit an actual sandbox endpoint ...?
+// (can a sandbox key be hard-coded in this module?)
 
 
+describe('`_deepToArray`', function() {
+  var _deepToArray = require('../lib/xml-request')._deepToArray;
 
-
-
-  // then try to hit an actual sandbox endpoint ...?
-  // (can a sandbox key be hard-coded in this module?)
+  it('converts everything to an array', function() {
+    expect(_deepToArray({
+      'Thing': {
+        'Has': {
+          'Weird': 'Structure'
+        }
+      },
+      'Things': [
+        {'foo': 'bar'}
+      ],
+      'More': 'Things',
+      'Finally': ['Thing1', 'Thing2']
+    }))
+    .to.deep.equal({
+      'Thing': [{
+        'Has': [{
+          'Weird': ['Structure']
+        }]
+      }],
+      'Things': [
+        {'foo': ['bar']}
+      ],
+      'More': ['Things'],
+      'Finally': ['Thing1', 'Thing2']
+    });
+  });
 
 });
