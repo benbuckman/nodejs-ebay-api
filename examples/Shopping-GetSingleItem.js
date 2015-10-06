@@ -1,9 +1,10 @@
-// example of GetSingleItem request to Shopping API.
-// see http://developer.ebay.com/DevZone/shopping/docs/CallRef/GetSingleItem.html
+/**
+ * example ebay API request to Shopping:GetSingleItem
+ */
 
 var ebay = require('../index.js');
 
-ebay.ebayApiGetRequest({
+ebay.xmlRequest({
   'serviceName': 'Shopping',
   'opType': 'GetSingleItem',
   'appId': '......................',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
@@ -13,6 +14,5 @@ ebay.ebayApiGetRequest({
   }
 },
 function(error, data) {
-  if (error) throw error;
-  console.dir(data);
+  // ...
 });
