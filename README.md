@@ -15,7 +15,7 @@ eBay's APIs are primarily XML-based, so this module unfortunately has to do a lo
 
 1. I created this module in 2012, for one of the first Node.js apps I ever launched,
   and built it out enough to handle my use cases at the time.
-2. Since then, [several other people](https://github.com/benbuckman/nodejs-ebay-api/network) have contributed to the module.
+2. Since then, [several other people][network] have contributed to the module.
 3. I decided, after reviewing the alternatives and finding nothing better,
   to revive this module again for a project in October 2015. I've pulled in improvements from various forks,
   refactored most of the code, and started adding tests.  
@@ -31,7 +31,7 @@ I don't have time to build this out to support every endpoint, so
 
 `var ebay = require('ebay-api');`
 
-(See the examples)
+(See the [examples][examples])
 
 
 ## A word on the eBay APIs
@@ -60,8 +60,8 @@ Makes an XML POST to an eBay API endpoints.
 
 and can optionally contain:
 
-  - `params`: (see examples and API documentation)
-  - `reqOptions`: passed to the [request](https://github.com/request/request) module, 
+  - `params`: (see [examples][examples] and API documentation)
+  - `reqOptions`: passed to the [request][request] module, 
     e.g. for additional `headers`, or `timeout`.
   - `parser`: function which takes the response data and extracts items (or other units depending on the query). 
     _Module includes a default parser._
@@ -130,7 +130,8 @@ Get the version numbers of the APIs that make their version available.
 
 ## Examples
 
-See the /examples directory. There are two examples, one with a single-page `findItemsByKeywords` request,
+See the [examples][examples] directory.
+There are two examples, one with a single-page `findItemsByKeywords` request,
 the other a paginated `findItemsAdvanced` request. It should be reasonably apparent from the examples 
 how these functions are used.
 To run the examples, you need to add your own app key (I don't want my keys to be disabled for abuse!) - 
@@ -138,3 +139,7 @@ you can get one [here](https://publisher.ebaypartnernetwork.com/PublisherToolsAP
 
 
 Enjoy!
+
+[network]: https://github.com/benbuckman/nodejs-ebay-api/network
+[examples]: https://github.com/benbuckman/nodejs-ebay-api/tree/master/examples
+[request]: https://github.com/request/request
