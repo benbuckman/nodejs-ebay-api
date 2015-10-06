@@ -45,7 +45,7 @@ describe('XML requests', function() {
       expect(request.post).to.have.been.calledOnce;
 
       expect(request.post.lastCall.args[0]).to.deep.equal({
-        url: 'http://open.api.sandbox.ebay.com/shopping?',
+        url: 'http://open.api.sandbox.ebay.com/shopping',
         headers: {
           'Content-Type': 'text/xml',
           'X-EBAY-API-APP-ID': 'ABCDEF',
@@ -121,6 +121,73 @@ describe('XML requests', function() {
   });
 
 
+  describe('Finding: findItemsByKeywords', function() {
+    beforeEach('build request', function () {
+      xmlRequest({
+        serviceName: 'Finding',
+        opType: 'findItemsByKeywords',
+        sandbox: true,
+        appId: 'ABCDEF',
+        raw: true,  // no parsing
+        params: {
+          keywords: ['Canon', 'Powershot'],
+          outputSelector: ['AspectHistogram'],
+          itemFilter: [
+            {name: 'FreeShippingOnly', value: 'true'},
+            {name: 'MaxPrice', value: '150'},
+          ],
+          domainFilter: [
+            {name: 'domainName', value: 'Digital_Cameras'}
+          ],
+          paginationInput: {
+            entriesPerPage: '5'
+          }
+        }
+      }, function noop() {
+      });
+    });
+
+    it('initiated request with expected parameters', function() {
+      expect(request.post).to.have.been.calledOnce;
+
+      expect(request.post.lastCall.args[0]).to.deep.equal({
+        url: 'http://svcs.sandbox.ebay.com/services/search/FindingService/v1',
+        headers: {
+          'X-EBAY-SOA-SECURITY-APPNAME': 'ABCDEF',
+          'X-EBAY-SOA-REQUEST-DATA-FORMAT': 'XML',
+          'X-EBAY-SOA-RESPONSE-DATA-FORMAT': 'XML',
+          'X-EBAY-SOA-GLOBAL-ID': 'EBAY-US',
+          'X-EBAY-SOA-SERVICE-VERSION': '1.13.0',
+          'X-EBAY-SOA-OPERATION-NAME': 'findItemsByKeywords'
+        },
+        body:
+          '<?xml version="1.0" encoding="UTF-8"?>\n' +
+          '<findItemsByKeywordsRequest xmlns="http://www.ebay.com/marketplace/search/v1/services">\n' +
+          '    <keywords>Canon</keywords>\n' +
+          '    <keywords>Powershot</keywords>\n' +
+          '    <outputSelector>AspectHistogram</outputSelector>\n' +
+          '    <itemFilter>\n' +
+          '        <name>FreeShippingOnly</name>\n' +
+          '        <value>true</value>\n' +
+          '    </itemFilter>\n' +
+          '    <itemFilter>\n' +
+          '        <name>MaxPrice</name>\n' +
+          '        <value>150</value>\n' +
+          '    </itemFilter>\n' +
+          '    <domainFilter>\n' +
+          '        <name>domainName</name>\n' +
+          '        <value>Digital_Cameras</value>\n' +
+          '    </domainFilter>\n' +
+          '    <paginationInput>\n' +
+          '        <entriesPerPage>5</entriesPerPage>\n' +
+          '    </paginationInput>\n' +
+          '</findItemsByKeywordsRequest>'
+      });
+    });
+
+  });
+
+
   describe('nested params', function() {
     beforeEach('build request', function() {
       xmlRequest({
@@ -131,7 +198,8 @@ describe('XML requests', function() {
         params: {
           'ItemTransactionIDArray': [{
             'ItemTransactionID': {
-              'OrderLineItemID': '12345-67890'
+              'OrderLineItemID': '12345-67890',
+              'SomeOtherID': 'ABCDEF'
             }
           }]
         }
@@ -145,6 +213,7 @@ describe('XML requests', function() {
         '    <ItemTransactionIDArray>\n' +
         '        <ItemTransactionID>\n' +
         '            <OrderLineItemID>12345-67890</OrderLineItemID>\n' +
+        '            <SomeOtherID>ABCDEF</SomeOtherID>\n' +
         '        </ItemTransactionID>\n' +
         '    </ItemTransactionIDArray>\n' +
         '</GetOrderTransactionsRequest>'
@@ -161,31 +230,98 @@ describe('XML requests', function() {
 describe('`_deepToArray`', function() {
   var _deepToArray = require('../lib/xml-request')._deepToArray;
 
-  it('converts everything to an array', function() {
+  it('converts plain value to array', function() {
+    expect(_deepToArray(5)).to.deep.equal([5]);
+  });
+
+  it('converts object to array', function() {
+    expect(_deepToArray({
+      'a': '1',
+      'b': '2'
+    })).to.deep.equal(
+      [
+        {'a': ['1']},
+        {'b': ['2']}
+      ]
+    );
+  });
+
+  it('splits out array elements into objects', function() {
+    expect(_deepToArray(
+      {
+        thing: ['a', 'b', 'c'],
+        itemFilter: [
+          {name: 'FreeShippingOnly', value: 'true'},
+          {name: 'MaxPrice', value: '150'},
+        ]
+      }
+    )).to.deep.equal(
+      [
+        {thing: ['a']},
+        {thing: ['b']},
+        {thing: ['c']},
+        {
+          itemFilter: [
+            {name: ['FreeShippingOnly']},
+            {value: ['true']},
+          ]
+        },
+        {
+          itemFilter: [
+            {name: ['MaxPrice']},
+            {value: ['150']},
+          ]
+        }
+      ]
+    );
+  });
+
+  it('converts everything recursively to arrays', function() {
     expect(_deepToArray({
       'Thing': {
         'Has': {
-          'Weird': 'Structure'
+          'Weird': 'Structure',
+          'Strange': 'Data'
         }
       },
       'Things': [
         {'foo': 'bar'}
       ],
       'More': 'Things',
-      'Finally': ['Thing1', 'Thing2']
+      'Finally': ['Thing1', 'Thing2'],
+      'Already': [{'An': 'Array'}]
     }))
-    .to.deep.equal({
-      'Thing': [{
-        'Has': [{
-          'Weird': ['Structure']
-        }]
-      }],
-      'Things': [
-        {'foo': ['bar']}
-      ],
-      'More': ['Things'],
-      'Finally': ['Thing1', 'Thing2']
-    });
+    .to.deep.equal(
+      [
+        {
+          'Thing': [{
+            'Has': [
+              {'Weird': ['Structure']},
+              {'Strange': ['Data']}
+            ]
+          }]
+        },
+        {
+          'Things': [
+            {'foo': ['bar']}
+          ]
+        },
+        {
+          'More': ['Things']
+        },
+        {
+          'Finally': ['Thing1']
+        },
+        {
+          'Finally': ['Thing2']
+        },
+        {
+          'Already': [
+            {'An': ['Array']}
+          ]
+        }
+      ]
+    );
   });
 
 });

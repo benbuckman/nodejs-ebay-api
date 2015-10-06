@@ -59,8 +59,9 @@ Makes an XML POST to an eBay API endpoints.
 and can optionally contain:
 
   - `params`: (see examples and API documentation)
-  - `filters`: (see examples and API documentation.) _might no longer work in 1.x: if you're using this, please submit a PR!_
-  - `reqOptions`: passed to the [request](https://github.com/request/request) module, e.g. for additional `headers`.
+  - `filters`: (see examples and API documentation.)
+  - `reqOptions`: passed to the [request](https://github.com/request/request) module, 
+    e.g. for additional `headers`, or `timeout`.
   - `parser`: function which takes the response data and extracts items (or other units depending on the query). 
     _Module includes a default parser._
   - `sandbox`: boolean (default false = production). May need to add additional endpoint URLs to the code as needed.
@@ -93,6 +94,13 @@ Note: Because the pages all run in parallel, they can cause spikes on CPU and ne
 `callback` gets `(error, items)`
 
 
+## Debugging
+
+This module uses the [debug](https://github.com/visionmedia/debug) module for internal logging.
+
+Run your app (or node REPL) with `DEBUG=ebay* ...` to see output. 
+
+
 ## Helpers
 
 ### `flatten(obj)`
@@ -101,10 +109,15 @@ Simplifies the JSON format of the API responses:
 
 - Single-element arrays and objects are flatted to their key:value pair.
 - The structure of the format `{ @key:KEY, __value__:VALUE }` is flattened to its key:value pair.
+- Other weird structures (from the API itself, or the XML->JSON conversion) are simplified. _(See the code for details.)_
 
 Its purpose is to make the data easier to handle in code, and to model/query in MongoDB.
 
 Runs synchronously, returns flattened object.
+
+The default parser will `flatten()` the response to a finite depth
+(because infinite recursion on an indeterminate response size would cause an unnecessary performance hit).  
+If you want to flatten further, use this method directly.
 
 
 ### `ItemFilter(name, value, paramName, paramValue)`

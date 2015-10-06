@@ -2,7 +2,7 @@
 
 exports.xmlRequest = require('./lib/xml-request').xmlRequest;
 
-exports.paginateGetRequest = require('./lib/pagination').paginateGetRequest;
+exports.paginatedRequest = require('./lib/pagination').paginatedRequest;
 
 exports.ItemFilter = require('./lib/filters').ItemFilter;
 

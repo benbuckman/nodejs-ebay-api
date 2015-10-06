@@ -144,5 +144,5 @@ describe('`flatten`', function() {
 
 
 describe('`parseResponse`', function() {
-  // @TODO
+  it('#TODO')
 });
