@@ -1,4 +1,6 @@
-// example simple request to FindingService:findItemsByKeywords
+/**
+ * example eBay API request to FindingService:findItemsByKeywords
+ */
 
 var ebay = require('../index.js');
 

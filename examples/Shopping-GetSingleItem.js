@@ -1,5 +1,6 @@
-// example of GetSingleItem request to Shopping API.
-// see http://developer.ebay.com/DevZone/shopping/docs/CallRef/GetSingleItem.html
+/**
+ * example ebay API request to Shopping:GetSingleItem
+ */
 
 var ebay = require('../index.js');
 
@@ -13,6 +14,5 @@ ebay.xmlRequest({
   }
 },
 function(error, data) {
-  if (error) throw error;
-  console.dir(data);
+  // ...
 });
