@@ -70,8 +70,8 @@ and can optionally contain:
   
 _for authentication, include:_
 
-  - `devName`
-  - `cert`
+  - `devId`
+  - `certId`
   - `authToken`
 
 `callback` gets `(error, data)`.
