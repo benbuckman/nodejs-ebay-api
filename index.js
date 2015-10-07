@@ -1,9 +1,10 @@
 // eBay API client for Node.js
 
-exports.xmlRequest = require('./lib/xml-request').xmlRequest;
+var _ = require('lodash');
 
-exports.paginatedRequest = require('./lib/pagination').paginatedRequest;
-
-var parser = require('./lib/parser');
-exports.parseResponse = parser.parseResponse;
-exports.flatten = parser.flatten;
+module.exports = _.extend({},
+  require('./lib/xml-request'),
+  require('./lib/pagination'),
+  require('./lib/parser'),
+  require('./lib/errors')
+);
