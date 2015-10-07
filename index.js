@@ -4,4 +4,6 @@ exports.xmlRequest = require('./lib/xml-request').xmlRequest;
 
 exports.paginatedRequest = require('./lib/pagination').paginatedRequest;
 
-exports.parseResponse = require('./lib/parser').parseResponse;
+var parser = require('./lib/parser');
+exports.parseResponse = parser.parseResponse;
+exports.flatten = parser.flatten;
