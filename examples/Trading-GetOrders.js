@@ -9,8 +9,8 @@ ebay.xmlRequest({
   opType : 'GetOrders',
 
   // app/environment
-  devName: '...........',
-  cert: '...........',
+  devId: '...........',
+  certId: '...........',
   appName: '...........',
   sandbox: true,
 
