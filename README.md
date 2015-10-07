@@ -95,13 +95,6 @@ Note: Because the pages all run in parallel, they can cause spikes on CPU and ne
 `callback` gets `(error, items)`
 
 
-## Debugging
-
-This module uses the [debug](https://github.com/visionmedia/debug) module for internal logging.
-
-Run your app (or node REPL) with `DEBUG=ebay* ...` to see output. 
-
-
 ## Helpers
 
 ### `flatten(obj)`
@@ -128,6 +121,14 @@ _Disabled in 1.x. Please submit a PR with a fix/refactor if you use this._
 Get the version numbers of the APIs that make their version available.
 
 
+## Errors
+
+The client exports and attempts to differentiate between `EbaySystemError`, `EbayRequestError`, and `EbayClientError`.
+
+See http://developer.ebay.com/DevZone/Shopping/docs/CallRef/types/ErrorClassificationCodeType.html
+and http://developer.ebay.com/devzone/xml/docs/Reference/ebay/Errors/ErrorMessages.htm.
+
+
 ## Examples
 
 See the [examples][examples] directory.
@@ -136,6 +137,13 @@ the other a paginated `findItemsAdvanced` request. It should be reasonably appar
 how these functions are used.
 To run the examples, you need to add your own app key (I don't want my keys to be disabled for abuse!) - 
 you can get one [here](https://publisher.ebaypartnernetwork.com/PublisherToolsAPI).
+
+
+## Debugging
+
+This module uses the [debug](https://github.com/visionmedia/debug) module for internal logging.
+
+Run your app (or node REPL) with `DEBUG=ebay* ...` to see output. 
 
 
 Enjoy!
