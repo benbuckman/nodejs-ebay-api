@@ -63,7 +63,10 @@ and can optionally contain:
   - `params`: (see [examples][examples] and API documentation)
   - `reqOptions`: passed to the [request][request] module, 
     e.g. for additional `headers`, or `timeout`.
-  - `parser`: function which takes the response data and extracts items (or other units depending on the query). 
+  - `xmlConverter`: function which takes the response XML and converts to JSON. 
+    _Module uses [xml2js](https://www.npmjs.com/package/xml2js) by default, but can be overridden._
+  - `parser`: function which takes the response data (as JSON object) and extracts items
+    (or other units depending on the query). 
     _Module includes a default parser._
   - `sandbox`: boolean (default false = production). May need to add additional endpoint URLs to the code as needed.
   - `raw`: boolean, set `true` to skip parsing and return the raw XML response.
@@ -112,6 +115,16 @@ Runs synchronously, returns flattened object.
 The default parser will `flatten()` the response to a finite depth
 (because infinite recursion on an indeterminate response size would cause an unnecessary performance hit).  
 If you want to flatten further, use this method directly.
+
+
+### `parseResponseJson(data, options, callback)`
+
+The default parser. Can be overridden (see `options` on `xmlRequest()`). 
+
+
+### `convertXmlToJson(xmlBody, options, callback)`
+
+The default XML->JS converter. Uses xml2js. Can be overridden (see `options` on `xmlRequest()`). 
 
 
 ### `getLatestApiVersions(callback)`

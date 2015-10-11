@@ -5,6 +5,7 @@ var _ = require('lodash');
 module.exports = _.extend({},
   require('./lib/xml-request'),
   require('./lib/pagination'),
-  require('./lib/parser'),
+  require('./lib/xml-converter'),
+  require('./lib/json-parser'),
   require('./lib/errors')
 );
