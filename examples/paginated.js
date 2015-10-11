@@ -35,7 +35,7 @@ ebay.paginatedRequest({
     params: params,
     pages: 2,
     perPage: 3, // max 100x100 (10k items)
-    parser: ebay.parseResponse
+    parser: ebay.parseResponseJson
   },
   // gets all the items together in a merged array
   function allItemsCallback(error, items) {
