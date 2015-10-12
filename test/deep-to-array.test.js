@@ -1,7 +1,4 @@
-var
-  chai = require('chai'),
-  expect = chai.expect;
-
+require('./helpers');
 
 describe('`deepToArray`', function() {
   var deepToArray = require('../lib/deep-to-array').deepToArray;

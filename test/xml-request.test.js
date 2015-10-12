@@ -1,9 +1,4 @@
-var
-  chai = require('chai'),
-  expect = chai.expect,
-  sinon = require('sinon');
-
-chai.use(require("sinon-chai"));
+require('./helpers');
 
 var
   request = require('request'),
@@ -11,14 +6,6 @@ var
   xmlRequest = ebay.xmlRequest;
 
 describe('XML requests', function() {
-  beforeEach('sandbox', function() {
-    this.sinon = sinon.sandbox.create();
-  });
-
-  afterEach('unstub', function() {
-    this.sinon.restore();
-  });
-
   describe('building requests', function() {
     beforeEach('stub request', function () {
       this.sinon.stub(request, 'post', function (options, callback) {
@@ -386,8 +373,3 @@ describe('XML requests', function() {
     });
   })
 });
-
-
-// @TODO try to hit an actual sandbox endpoint ...?
-// (can a sandbox key be hard-coded in this module?)
-
