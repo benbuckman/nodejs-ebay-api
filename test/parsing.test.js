@@ -7,14 +7,15 @@ var
   parseResponseJson = require('../lib/json-parser').parseResponseJson;
 
 
-describe('`parseResponseJson`', function() {
+describe('`parseResponseJson` with unlimited depth', function() {
 
   context('GetOrders response', function () {
     var responseXml, responseJson, parsedResponse;
 
     var requestContext = {
       serviceName: 'Trading',
-      opType: 'GetOrders'
+      opType: 'GetOrders',
+      parseDepth: -1
     };
 
     beforeEach('load mock response', function () {

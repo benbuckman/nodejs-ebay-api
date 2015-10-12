@@ -79,6 +79,9 @@ and can optionally contain:
     _Module includes a default parser._
   - `sandbox`: boolean (default false = production). May need to add additional endpoint URLs to the code as needed.
   - `raw`: boolean, set `true` to skip parsing and return the raw XML response.
+  - `parseDepth`: how many levels down to try to parse/interpret the response.
+     _The default parser is still experimental._ Set this to 0 or 1 to let your app do all the parsing.
+     (Default: unlimited)
   
 _for authentication, include:_
 
