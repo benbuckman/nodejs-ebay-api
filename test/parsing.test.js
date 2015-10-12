@@ -81,6 +81,13 @@ describe('`parseResponseJson`', function() {
       expect(_orders[1].Transactions[1].Taxes.TaxDetails).to.have.length(2);
     });
 
+    it('flattens sub-elements within known arrays', function() {
+      expect(parsedResponse.Orders[0].Transactions[0].Taxes.TaxDetails[0])
+        .to.have.property('Imposition', 'SalesTax');
+      expect(parsedResponse.Orders[1].Transactions[1].Taxes.TaxDetails[0])
+        .to.have.property('Imposition', 'SalesTax');
+    });
+
     it('converts booleans', function() {
       expect(parsedResponse.Orders[0]).to.have.property('IsMultiLegShipping', false);
     });
@@ -92,9 +99,11 @@ describe('`parseResponseJson`', function() {
 
     it('converts currency amounts', function() {
       expect(parsedResponse.Orders[0]).to.have.property('AdjustmentAmount')
-        .that.deep.equal({amount: 0, currencyID: 'USD'})
+        .that.deep.equal({amount: 0, currencyID: 'USD'});
       expect(parsedResponse.Orders[0]).to.have.property('AmountPaid')
-        .that.deep.equal({amount: 6, currencyID: 'USD'})
+        .that.deep.equal({amount: 6, currencyID: 'USD'});
+      expect(parsedResponse.Orders[0].Transactions[0]).to.have.property('TransactionPrice')
+        .that.deep.equal({amount: 3, currencyID: 'USD'});
     });
   });
 
