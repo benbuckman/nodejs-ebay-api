@@ -49,6 +49,7 @@ describe('`parseResponseJson` with unlimited depth', function() {
 
     it('converted <OrderArray> to `Orders`', function() {
       expect(parsedResponse).to.have.property('Orders');
+      expect(parsedResponse).not.to.have.property('OrderArray');
       expect(parsedResponse.Orders).to.have.length(2);
     });
 
@@ -56,6 +57,8 @@ describe('`parseResponseJson` with unlimited depth', function() {
       var _orders = parsedResponse.Orders;
 
       expect(_orders[0]).to.have.property('Transactions');
+      expect(_orders[0]).not.to.have.property('TransactionArray');
+
 
       // `Transactions` are always arrays
       expect(_orders[0].Transactions).to.have.length(1);
@@ -107,6 +110,9 @@ describe('`parseResponseJson` with unlimited depth', function() {
         .that.deep.equal({amount: 3, currencyID: 'USD'});
     });
   });
+
+
+  // TODO test parseDepth:0, shouldn't transform at all
 
 
   context('GetSingleItem response', function () {
