@@ -25,6 +25,15 @@ I don't have time to build this out to support every endpoint, so
 **if you are using this module, or would like to use this module, please submit pull requests!**
 
 
+### Current state
+
+The 1.x branch is currently under active development, and there may be breaking changes between minor releases.  
+(I realize this is contrary to best practice, but the module is not yet settled enough to major-bump every time.)
+
+**If you are using the 1.x branch, I recommend that you a) let me know your use case, b) help develop it, 
+c) watch the commit and release logs carefully.**
+
+
 ## Usage
 
 `npm install ebay-api`
