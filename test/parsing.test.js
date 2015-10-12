@@ -89,6 +89,13 @@ describe('`parseResponseJson`', function() {
       expect(parsedResponse).to.have.deep.property('PaginationResult.TotalNumberOfPages', 1);
       expect(parsedResponse).to.have.deep.property('PaginationResult.TotalNumberOfEntries', 2);
     });
+
+    it('converts currency amounts', function() {
+      expect(parsedResponse.Orders[0]).to.have.property('AdjustmentAmount')
+        .that.deep.equal({amount: 0, currencyID: 'USD'})
+      expect(parsedResponse.Orders[0]).to.have.property('AmountPaid')
+        .that.deep.equal({amount: 6, currencyID: 'USD'})
+    });
   });
 
 
