@@ -27,9 +27,9 @@ process.stdin.on('end', function() {
       //  so anything `options`-specific in the parser won't work.)
       convertXmlToJson(inputXml, {}, next);
     },
-    //function(data, next) {
-    //  parseResponseJson(data, {}, next);
-    //}
+    function(data, next) {
+      parseResponseJson(data, {}, next);
+    }
   ],
   function(error, parsedJson) {
     if (error) {
