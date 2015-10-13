@@ -9,7 +9,7 @@ var
 
 describe('`parseResponseJson` with unlimited depth', function() {
 
-  context('GetOrders response', function () {
+  context('Trading:GetOrders response', function () {
     var responseXml, responseJson, parsedResponse;
 
     var requestContext = {
@@ -120,10 +120,58 @@ describe('`parseResponseJson` with unlimited depth', function() {
   // TODO test parseDepth:0, shouldn't transform at all
 
 
-  context('GetSingleItem response', function () {
+  context.only('Shopping:GetMultipleItems response', function () {
     var responseXml, responseJson, parsedResponse;
 
-    it('#TODO');
+    var requestContext = {
+      serviceName: 'Shopping',
+      opType: 'GetMultipleItems',
+      parseDepth: -1
+    };
+
+    beforeEach('load mock response', function () {
+      responseXml = fs.readFileSync(path.resolve(__dirname, 'mocks', 'GetMultipleItems.xml'), {encoding: 'utf8'});
+    });
+
+    beforeEach('convert xml to json', function (done) {
+      convertXmlToJson(responseXml, requestContext, function (error, _json) {
+        if (error) return done(error);
+        responseJson = _json;
+        done();
+      });
+    });
+
+    beforeEach('parse json', function (done) {
+      parseResponseJson(responseJson, requestContext, function (error, _data) {
+        if (error) return done(error);
+        parsedResponse = _data;
+        done();
+      });
+    });
+
+    it('converted XML to JSON', function () {
+      expect(responseJson).to.have.property('GetMultipleItemsResponse');
+    });
+
+    it('parsed data from JSON', function () {
+      expect(parsedResponse).to.have.property('Timestamp', '2015-10-13T15:00:00.000Z');
+      expect(parsedResponse).to.have.property('Ack', 'Success');
+    });
+
+    it('has array of `Items`', function() {
+      expect(parsedResponse).to.have.property('Item')
+        .that.is.an.instanceof(Array);
+      expect(parsedResponse.Item).to.have.length(2);
+    });
+
+    it('each item has expected properties', function() {
+      expect(parsedResponse.Item[0]).to.have.property('ItemID', '222222222222');
+      expect(parsedResponse.Item[1]).to.have.property('ItemID', '333333333333');
+    });
+
+    // TODO list of fields that are known to repeat...
+    // e.g. 'PictureURL' can be an array or single value.
+
   });
 
 });
