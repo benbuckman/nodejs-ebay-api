@@ -120,7 +120,7 @@ describe('`parseResponseJson` with unlimited depth', function() {
   // TODO test parseDepth:0, shouldn't transform at all
 
 
-  context.only('Shopping:GetMultipleItems response', function () {
+  context('Shopping:GetMultipleItems response', function () {
     var responseXml, responseJson, parsedResponse;
 
     var requestContext = {
@@ -161,12 +161,11 @@ describe('`parseResponseJson` with unlimited depth', function() {
     it('has array of `Items`', function() {
       expect(parsedResponse).to.have.property('Item')
         .that.is.an.instanceof(Array);
-      expect(parsedResponse.Item).to.have.length(2);
+      expect(parsedResponse.Item).to.have.length(1);
     });
 
-    it('each item has expected properties', function() {
+    it('item has expected properties', function() {
       expect(parsedResponse.Item[0]).to.have.property('ItemID', '222222222222');
-      expect(parsedResponse.Item[1]).to.have.property('ItemID', '333333333333');
     });
 
     // TODO list of fields that are known to repeat...
