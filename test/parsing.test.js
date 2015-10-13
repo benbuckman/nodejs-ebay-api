@@ -117,13 +117,10 @@ describe('`parseResponseJson` with unlimited depth', function() {
   });
 
 
-  // TODO test parseDepth:0, shouldn't transform at all
-
-
   context('Shopping:GetMultipleItems response', function () {
-    var responseXml, responseJson, parsedResponse;
+    var responseXml, responseJson, parsedResponse, requestContext;
 
-    var requestContext = {
+    requestContext = {
       serviceName: 'Shopping',
       opType: 'GetMultipleItems',
       parseDepth: -1
@@ -170,6 +167,40 @@ describe('`parseResponseJson` with unlimited depth', function() {
 
     // TODO list of fields that are known to repeat...
     // e.g. 'PictureURL' can be an array or single value.
+
+
+
+    context('with shallow parsing', function() {
+      beforeEach(function() {
+        requestContext = {
+          serviceName: 'Shopping',
+          opType: 'GetMultipleItems',
+          parseDepth: 1   // !!
+        };
+      });
+
+      beforeEach('convert xml to json', function (done) {
+        convertXmlToJson(responseXml, requestContext, function (error, _json) {
+          if (error) return done(error);
+          responseJson = _json;
+          done();
+        });
+      });
+
+      beforeEach('parse json shallowly', function (done) {
+        parseResponseJson(responseJson, requestContext, function (error, _data) {
+          if (error) return done(error);
+          parsedResponse = _data;
+          done();
+        });
+      });
+
+      it('leaves deep elements as arrays', function() {
+        expect(parsedResponse.Timestamp).to.be.be.instanceof(Array);
+        expect(parsedResponse.Item[0].ItemID).to.be.be.instanceof(Array);
+      });
+
+    });
 
   });
 
