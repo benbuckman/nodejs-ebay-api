@@ -1,0 +1,17 @@
+<!-- mock empty orders (user has no recently-modified order) -->
+<?xml version="1.0" encoding="UTF-8"?>
+<GetOrdersResponse xmlns="urn:ebay:apis:eBLBaseComponents">
+    <Timestamp>2015-10-11T15:01:00.222Z</Timestamp>
+    <Ack>Success</Ack>
+    <Version>939</Version>
+    <Build>E939_CORE_APIXO_17691495_R1</Build>
+    <PaginationResult>
+        <TotalNumberOfPages>0</TotalNumberOfPages>
+        <TotalNumberOfEntries>0</TotalNumberOfEntries>
+    </PaginationResult>
+    <HasMoreOrders>false</HasMoreOrders>
+    <OrderArray></OrderArray>
+    <OrdersPerPage>100</OrdersPerPage>
+    <PageNumber>1</PageNumber>
+    <ReturnedOrderCountActual>0</ReturnedOrderCountActual>
+</GetOrdersResponse>

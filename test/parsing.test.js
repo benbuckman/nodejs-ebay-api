@@ -117,6 +117,47 @@ describe('`parseResponseJson` with unlimited depth', function() {
   });
 
 
+  context('Empty Trading:GetOrders response', function() {
+    var responseXml, responseJson, parsedResponse;
+
+    var requestContext = {
+      serviceName: 'Trading',
+      opType: 'GetOrders',
+      parseDepth: -1
+    };
+
+    beforeEach('load mock response', function () {
+      responseXml = fs.readFileSync(path.resolve(__dirname, 'mocks', 'GetOrders-empty.xml'), {encoding: 'utf8'});
+    });
+
+    beforeEach('convert xml to json', function (done) {
+      convertXmlToJson(responseXml, requestContext, function (error, _json) {
+        if (error) return done(error);
+        responseJson = _json;
+        done();
+      });
+    });
+
+    beforeEach('parse json', function (done) {
+      parseResponseJson(responseJson, requestContext, function (error, _data) {
+        if (error) return done(error);
+        parsedResponse = _data;
+        done();
+      });
+    });
+
+    it('converted XML to JSON', function () {
+      expect(responseJson).to.have.property('GetOrdersResponse');
+    });
+
+    it('converted <OrderArray> to empty `Orders` array', function() {
+      expect(parsedResponse).to.have.property('Orders');
+      expect(parsedResponse).not.to.have.property('OrderArray');
+      expect(parsedResponse.Orders).to.have.length(0);
+    });
+  });
+
+
   context('Shopping:GetMultipleItems response', function () {
     var responseXml, responseJson, parsedResponse, requestContext;
 
