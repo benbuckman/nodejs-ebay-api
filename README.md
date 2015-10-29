@@ -150,6 +150,8 @@ Get the version numbers of the APIs that make their version available.
 
 The client exports and attempts to differentiate between `EbaySystemError`, `EbayRequestError`, and `EbayClientError`.
 
+An `EbayAuthenticationError` is also defined, but not yet hooked up to anything.
+
 See http://developer.ebay.com/DevZone/Shopping/docs/CallRef/types/ErrorClassificationCodeType.html
 and http://developer.ebay.com/devzone/xml/docs/Reference/ebay/Errors/ErrorMessages.htm.
 
