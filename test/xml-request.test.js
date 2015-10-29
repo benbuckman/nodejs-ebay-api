@@ -276,6 +276,7 @@ describe('XML requests', function() {
         expect(err).to.have.property('classification', 'RequestError');
         expect(err).to.have.property('errors').that.is.instanceof(Array);
         expect(err).to.have.property('requestContext').that.have.property('serviceName', 'Trading');
+        expect(err.requestContext).not.to.have.property('parser');  // no functions
         expect(err).to.have.property('details');
       });
 
