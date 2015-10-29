@@ -61,12 +61,13 @@ describe('error classes', function() {
       it('can\'t overwrite base properties with extra properties', function() {
         var err = new errorClass('Original message', {
           message: 'New message',
-          name: 'UhOh'
+          name: 'UhOh',
+          stack: 'ByeBye'
         });
 
         expect(err.message).to.equal('Original message');
         expect(err.name).to.equal(errorClassName);
-
+        expect(err.stack).not.to.equal('ByeBye');
       });
 
     });
