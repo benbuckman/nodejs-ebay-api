@@ -58,6 +58,17 @@ describe('error classes', function() {
         });
       });
 
+      it('can\'t overwrite base properties with extra properties', function() {
+        var err = new errorClass('Original message', {
+          message: 'New message',
+          name: 'UhOh'
+        });
+
+        expect(err.message).to.equal('Original message');
+        expect(err.name).to.equal(errorClassName);
+
+      });
+
     });
   });
 });
