@@ -275,9 +275,16 @@ describe('XML requests', function() {
         expect(err).to.have.property('severityCode', 'Error');
         expect(err).to.have.property('classification', 'RequestError');
         expect(err).to.have.property('errors').that.is.instanceof(Array);
-        expect(err).to.have.property('requestContext').that.have.property('serviceName', 'Trading');
-        expect(err.requestContext).not.to.have.property('parser');  // no functions
         expect(err).to.have.property('details');
+        expect(err).to.have.property('requestContext');
+        expect(err.requestContext).to.have.property('serviceName', 'Trading');
+        expect(err.requestContext).to.have.property('reqOptions');
+        expect(err.requestContext.reqOptions).to.have.property('body');
+        expect(err.requestContext.reqOptions).to.have.property('url');
+        expect(err.requestContext).to.have.property('response');
+        expect(err.requestContext.response).to.have.property('statusCode', 200);
+        expect(err.requestContext.response).to.have.property('body').that.match(/^<\?xml/);
+        expect(err.requestContext).not.to.have.property('parser');  // no functions
       });
 
       it('also gets response data', function() {
@@ -312,8 +319,16 @@ describe('XML requests', function() {
         expect(err).to.have.property('severityCode', 'Warning');
         expect(err).to.have.property('classification', 'RequestError');
         expect(err).to.have.property('errors').that.is.instanceof(Array);
-        expect(err).to.have.property('requestContext').that.have.property('serviceName', 'Trading');
         expect(err).to.have.property('details');
+        expect(err).to.have.property('requestContext');
+        expect(err.requestContext).to.have.property('serviceName', 'Trading');
+        expect(err.requestContext).to.have.property('reqOptions');
+        expect(err.requestContext.reqOptions).to.have.property('body');
+        expect(err.requestContext.reqOptions).to.have.property('url');
+        expect(err.requestContext).to.have.property('response');
+        expect(err.requestContext.response).to.have.property('statusCode', 200);
+        expect(err.requestContext.response).to.have.property('body').that.match(/^<\?xml/);
+        expect(err.requestContext).not.to.have.property('parser');  // no functions
       });
 
       it('also gets response data', function() {
