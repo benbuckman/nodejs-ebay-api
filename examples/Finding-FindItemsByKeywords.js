@@ -32,9 +32,11 @@ ebay.xmlRequest({
     parser: ebay.parseResponseJson    // (default)
   },
   // gets all the items together in a merged array
-  function itemsCallback(error, items) {
+  function itemsCallback(error, itemsResponse) {
     if (error) throw error;
-    
+
+    var items = itemsResponse.searchResult.item;
+
     console.log('Found', items.length, 'items');
     
     for (var i = 0; i < items.length; i++) {
