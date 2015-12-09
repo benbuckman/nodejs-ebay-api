@@ -92,24 +92,6 @@ _for authentication, include:_
 `callback` gets `(error, data)`.
 
 
-### `paginateGetRequest(options, callback)`
-
-Make a multi-page request to a GET service, running them in parallel and combining the results.
-
-_Note: this is currently broken in 1.x. Fixes/refactors are welcome._
-
-`options` contains the same parameters as `ebayApiGetRequest`, plus:
-
-- pages: # of pages to query
-- perPage: items per page
-
-`parser` here needs to return an array, so the results can be concatenated and passed to `callback`.
-
-Note: Because the pages all run in parallel, they can cause spikes on CPU and network activity. In the future, I might switch this to using an [async](https://github.com/caolan/async) `queue` (instead of `forEach`) with a variable concurrency. (A `forEachSeries` can also be used, but negates the purpose of running the requests asynchronously.)
-
-`callback` gets `(error, items)`
-
-
 ## Helpers
 
 ### `flatten(obj)`
@@ -159,9 +141,6 @@ and http://developer.ebay.com/devzone/xml/docs/Reference/ebay/Errors/ErrorMessag
 ## Examples
 
 See the [examples][examples] directory.
-There are two examples, one with a single-page `findItemsByKeywords` request,
-the other a paginated `findItemsAdvanced` request. It should be reasonably apparent from the examples 
-how these functions are used.
 To run the examples, you need to add your own app key (I don't want my keys to be disabled for abuse!) - 
 you can get one [here](https://publisher.ebaypartnernetwork.com/PublisherToolsAPI).
 
