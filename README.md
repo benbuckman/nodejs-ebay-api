@@ -25,6 +25,15 @@ I don't have time to build this out to support every endpoint, so
 **if you are using this module, or would like to use this module, please submit pull requests!**
 
 
+### Current state
+
+The 1.x branch is currently under active development, and there may be breaking changes between minor releases.  
+(I realize this is contrary to best practice, but the module is not yet settled enough to major-bump every time.)
+
+**If you are using the 1.x branch, I recommend that you a) let me know your use case, b) help develop it, 
+c) watch the commit and release logs carefully.**
+
+
 ## Usage
 
 `npm install ebay-api`
@@ -63,10 +72,16 @@ and can optionally contain:
   - `params`: (see [examples][examples] and API documentation)
   - `reqOptions`: passed to the [request][request] module, 
     e.g. for additional `headers`, or `timeout`.
-  - `parser`: function which takes the response data and extracts items (or other units depending on the query). 
+  - `xmlConverter`: function which takes the response XML and converts to JSON. 
+    _Module uses [xml2js](https://www.npmjs.com/package/xml2js) by default, but can be overridden._
+  - `parser`: function which takes the response data (as JSON object) and extracts items
+    (or other units depending on the query). 
     _Module includes a default parser._
   - `sandbox`: boolean (default false = production). May need to add additional endpoint URLs to the code as needed.
   - `raw`: boolean, set `true` to skip parsing and return the raw XML response.
+  - `parseDepth`: how many levels down to try to parse/interpret the response.
+     _The default parser is still experimental._ Set this to 0 or 1 to let your app do all the parsing.
+     (Default: unlimited)
   
 _for authentication, include:_
 
@@ -75,24 +90,6 @@ _for authentication, include:_
   - `authToken`
 
 `callback` gets `(error, data)`.
-
-
-### `paginateGetRequest(options, callback)`
-
-Make a multi-page request to a GET service, running them in parallel and combining the results.
-
-_Note: this is currently broken in 1.x. Fixes/refactors are welcome._
-
-`options` contains the same parameters as `ebayApiGetRequest`, plus:
-
-- pages: # of pages to query
-- perPage: items per page
-
-`parser` here needs to return an array, so the results can be concatenated and passed to `callback`.
-
-Note: Because the pages all run in parallel, they can cause spikes on CPU and network activity. In the future, I might switch this to using an [async](https://github.com/caolan/async) `queue` (instead of `forEach`) with a variable concurrency. (A `forEachSeries` can also be used, but negates the purpose of running the requests asynchronously.)
-
-`callback` gets `(error, items)`
 
 
 ## Helpers
@@ -114,6 +111,16 @@ The default parser will `flatten()` the response to a finite depth
 If you want to flatten further, use this method directly.
 
 
+### `parseResponseJson(data, options, callback)`
+
+The default parser. Can be overridden (see `options` on `xmlRequest()`). 
+
+
+### `convertXmlToJson(xmlBody, options, callback)`
+
+The default XML->JS converter. Uses xml2js. Can be overridden (see `options` on `xmlRequest()`). 
+
+
 ### `getLatestApiVersions(callback)`
 
 _Disabled in 1.x. Please submit a PR with a fix/refactor if you use this._
@@ -125,6 +132,8 @@ Get the version numbers of the APIs that make their version available.
 
 The client exports and attempts to differentiate between `EbaySystemError`, `EbayRequestError`, and `EbayClientError`.
 
+An `EbayAuthenticationError` is also defined, but not yet hooked up to anything.
+
 See http://developer.ebay.com/DevZone/Shopping/docs/CallRef/types/ErrorClassificationCodeType.html
 and http://developer.ebay.com/devzone/xml/docs/Reference/ebay/Errors/ErrorMessages.htm.
 
@@ -132,9 +141,6 @@ and http://developer.ebay.com/devzone/xml/docs/Reference/ebay/Errors/ErrorMessag
 ## Examples
 
 See the [examples][examples] directory.
-There are two examples, one with a single-page `findItemsByKeywords` request,
-the other a paginated `findItemsAdvanced` request. It should be reasonably apparent from the examples 
-how these functions are used.
 To run the examples, you need to add your own app key (I don't want my keys to be disabled for abuse!) - 
 you can get one [here](https://publisher.ebaypartnernetwork.com/PublisherToolsAPI).
 

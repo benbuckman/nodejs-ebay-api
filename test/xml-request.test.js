@@ -1,9 +1,4 @@
-var
-  chai = require('chai'),
-  expect = chai.expect,
-  sinon = require('sinon');
-
-chai.use(require("sinon-chai"));
+require('./helpers');
 
 var
   request = require('request'),
@@ -11,14 +6,6 @@ var
   xmlRequest = ebay.xmlRequest;
 
 describe('XML requests', function() {
-  beforeEach('sandbox', function() {
-    this.sinon = sinon.sandbox.create();
-  });
-
-  afterEach('unstub', function() {
-    this.sinon.restore();
-  });
-
   describe('building requests', function() {
     beforeEach('stub request', function () {
       this.sinon.stub(request, 'post', function (options, callback) {
@@ -242,21 +229,22 @@ describe('XML requests', function() {
       data = null;
     });
 
-    function _buildResponseCallback(errorCode, errorClassification) {
+    function _buildResponseCallback(errorCode, errorClassification, errorSeverity) {
       return function(options, callback) {
         process.nextTick(function() {
           callback(null, {
             statusCode: 200,
             body: '<?xml version="1.0" encoding="UTF-8"?>\n' +
               '<GetOrdersResponse xmlns="urn:ebay:apis:eBLBaseComponents">\n' +
-              '  <Ack>Failure</Ack>\n' +
+              '  <Ack>' + (errorSeverity === 'Warning' ? 'Warning' : 'Failure') + '</Ack>\n' +
               '  <Errors>\n' +
               '    <ShortMessage>Something went wrong.</ShortMessage>\n' +
               '    <LongMessage>Something really went wrong.</LongMessage>\n' +
               '    <ErrorCode>' + errorCode + '</ErrorCode>\n' +
-              '    <SeverityCode>Error</SeverityCode>\n' +
+              '    <SeverityCode>' + errorSeverity + '</SeverityCode>\n' +
               '    <ErrorClassification>' + errorClassification + '</ErrorClassification>\n' +
               '  </Errors>' +
+              '  <OrderArray><Order></Order></OrderArray>' +
               '</GetOrdersResponse>'   // (not comprehensive)
           });
         });
@@ -265,7 +253,7 @@ describe('XML requests', function() {
 
     describe('RequestError from response', function() {
       beforeEach('stub request', function() {
-        this.sinon.stub(request, 'post', _buildResponseCallback('12345', 'RequestError'));
+        this.sinon.stub(request, 'post', _buildResponseCallback('12345', 'RequestError', 'Error'));
       });
 
       beforeEach('simulate request', function (done) {
@@ -283,15 +271,77 @@ describe('XML requests', function() {
         expect(err).to.be.an.instanceOf(ebay.EbayRequestError);
       });
 
+      it('error has context properties', function() {
+        expect(err).to.have.property('severityCode', 'Error');
+        expect(err).to.have.property('classification', 'RequestError');
+        expect(err).to.have.property('errors').that.is.instanceof(Array);
+        expect(err).to.have.property('details');
+        expect(err).to.have.property('requestContext');
+        expect(err.requestContext).to.have.property('serviceName', 'Trading');
+        expect(err.requestContext).to.have.property('reqOptions');
+        expect(err.requestContext.reqOptions).to.have.property('body');
+        expect(err.requestContext.reqOptions).to.have.property('url');
+        expect(err.requestContext).to.have.property('response');
+        expect(err.requestContext.response).to.have.property('statusCode', 200);
+        expect(err.requestContext.response).to.have.property('body').that.match(/^<\?xml/);
+        expect(err.requestContext).not.to.have.property('parser');  // no functions
+      });
+
       it('also gets response data', function() {
         expect(data).to.be.ok;
         expect(data).to.have.property('Ack', 'Failure');
+        expect(data).to.have.property('Orders').that.is.instanceof(Array);
       })
     });
 
+
+    describe('Warning from response', function() {
+      beforeEach('stub request', function() {
+        this.sinon.stub(request, 'post', _buildResponseCallback('12345', 'RequestError', 'Warning'));
+      });
+
+      beforeEach('simulate request', function (done) {
+        xmlRequest({
+          serviceName: 'Trading',
+          opType: 'GetOrders'
+        }, function(_err, _data) {
+          err = _err;
+          data = _data;
+          done();
+        });
+      });
+
+      it('throws an EbayRequestError', function() {
+        expect(err).to.be.an.instanceOf(ebay.EbayRequestError);
+      });
+
+      it('error has context properties', function() {
+        expect(err).to.have.property('severityCode', 'Warning');
+        expect(err).to.have.property('classification', 'RequestError');
+        expect(err).to.have.property('errors').that.is.instanceof(Array);
+        expect(err).to.have.property('details');
+        expect(err).to.have.property('requestContext');
+        expect(err.requestContext).to.have.property('serviceName', 'Trading');
+        expect(err.requestContext).to.have.property('reqOptions');
+        expect(err.requestContext.reqOptions).to.have.property('body');
+        expect(err.requestContext.reqOptions).to.have.property('url');
+        expect(err.requestContext).to.have.property('response');
+        expect(err.requestContext.response).to.have.property('statusCode', 200);
+        expect(err.requestContext.response).to.have.property('body').that.match(/^<\?xml/);
+        expect(err.requestContext).not.to.have.property('parser');  // no functions
+      });
+
+      it('also gets response data', function() {
+        expect(data).to.be.ok;
+        expect(data).to.have.property('Ack', 'Warning');
+        expect(data).to.have.property('Orders').that.is.instanceof(Array);
+      })
+    });
+
+
     describe('SystemError from response', function() {
       beforeEach('stub request', function() {
-        this.sinon.stub(request, 'post', _buildResponseCallback('12345', 'SystemError'));
+        this.sinon.stub(request, 'post', _buildResponseCallback('12345', 'SystemError', 'Error'));
       });
 
       beforeEach('simulate request', function (done) {
@@ -312,7 +362,8 @@ describe('XML requests', function() {
 
     describe('XML parsing fails', function() {
       beforeEach('stub request', function() {
-        this.sinon.stub(request, 'post', _buildResponseCallback('<<<<', '>>>>'));  // screw up XML body
+        // screw up XML body
+        this.sinon.stub(request, 'post', _buildResponseCallback('<<<<', '>>>>', 'Error'));
       });
 
       beforeEach('simulate request', function (done) {
@@ -386,8 +437,3 @@ describe('XML requests', function() {
     });
   })
 });
-
-
-// @TODO try to hit an actual sandbox endpoint ...?
-// (can a sandbox key be hard-coded in this module?)
-
