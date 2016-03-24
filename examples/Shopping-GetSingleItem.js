@@ -10,7 +10,7 @@ ebay.xmlRequest({
   'appId': '......................',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
   
   params: {
-    'ItemId': '1234567890'      // FILL IN A REAL ItemID
+    'ItemID': '1234567890'      // FILL IN A REAL ItemID
   }
 },
 function(error, data) {
