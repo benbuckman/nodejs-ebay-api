@@ -9,18 +9,18 @@
   },
   "main": "index.js",
   "dependencies": {
-    "async": "^1.4.2",
-    "debug": "^2.2.0",
-    "lodash": "^3.10.1",
-    "request": "^2.72.0",
-    "xml": "^1.0.0",
-    "xml2js": "^0.4.12"
+    "async": "1.5.2",
+    "debug": "2.2.0",
+    "lodash": "3.10.1",
+    "request": "2.72.0",
+    "xml": "1.0.1",
+    "xml2js": "0.4.16"
   },
   "devDependencies": {
-    "chai": "^3.3.0",
-    "mocha": "^2.3.3",
-    "sinon": "^1.17.1",
-    "sinon-chai": "^2.8.0"
+    "chai": "3.5.0",
+    "mocha": "2.5.3",
+    "sinon": "1.17.4",
+    "sinon-chai": "2.8.0"
   },
   "scripts": {
     "test": "mocha"
