@@ -1,7 +1,7 @@
 {
   "name": "ebay-api",
   "description": "eBay API Client",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "homepage": "https://github.com/benbuckman/nodejs-ebay-api",
   "author": "Ben Buckman",
   "repository": {
