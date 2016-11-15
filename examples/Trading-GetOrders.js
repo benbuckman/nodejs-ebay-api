@@ -11,7 +11,7 @@ ebay.xmlRequest({
   // app/environment
   devId: '...........',
   certId: '...........',
-  appName: '...........',
+  appId: '...........',
   sandbox: true,
 
   // per user

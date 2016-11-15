@@ -2,7 +2,7 @@ require('./helpers');
 
 var
   request = require('request'),
-  ebay = require('../index')
+  ebay = require('../index'),
   xmlRequest = ebay.xmlRequest;
 
 describe('XML requests', function() {
@@ -53,9 +53,13 @@ describe('XML requests', function() {
           body: '<?xml version="1.0" encoding="UTF-8"?>\n' +
           '<GetSingleItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">\n' +
           '    <ItemID>123456</ItemID>\n' +
-          '</GetSingleItemRequest>'
+          '</GetSingleItemRequest>',
+          agentOptions: {
+            ciphers: 'ALL',
+            secureProtocol: 'TLSv1_method',
+          },
         });
-      })
+      });
     });
 
 
@@ -84,7 +88,7 @@ describe('XML requests', function() {
           '    <ItemID>345678</ItemID>\n' +
           '</GetMultipleItemsRequest>'
         );
-      })
+      });
     });
 
 
@@ -177,7 +181,11 @@ describe('XML requests', function() {
           '    <paginationInput>\n' +
           '        <entriesPerPage>5</entriesPerPage>\n' +
           '    </paginationInput>\n' +
-          '</findItemsByKeywordsRequest>'
+          '</findItemsByKeywordsRequest>',
+          agentOptions: {
+            ciphers: 'ALL',
+            secureProtocol: 'TLSv1_method',
+          },
         });
       });
 
@@ -306,7 +314,7 @@ describe('XML requests', function() {
           '    </ItemTransactionIDArray>\n' +
           '</GetOrderTransactionsRequest>'
         );
-      })
+      });
     });
 
   });
@@ -382,7 +390,7 @@ describe('XML requests', function() {
         expect(data).to.be.ok;
         expect(data).to.have.property('Ack', 'Failure');
         expect(data).to.have.property('Orders').that.is.instanceof(Array);
-      })
+      });
     });
 
 
@@ -426,7 +434,7 @@ describe('XML requests', function() {
         expect(data).to.be.ok;
         expect(data).to.have.property('Ack', 'Warning');
         expect(data).to.have.property('Orders').that.is.instanceof(Array);
-      })
+      });
     });
 
 
@@ -470,7 +478,7 @@ describe('XML requests', function() {
 
       it('throws an EbayClientError', function() {
         expect(err).to.be.an.instanceOf(ebay.EbayClientError);
-      })
+      });
     });
 
     describe('non-200 response code', function() {
@@ -495,7 +503,7 @@ describe('XML requests', function() {
       it('throws an EbayClientError', function() {
         expect(err).to.be.an.instanceOf(ebay.EbayClientError);
         expect(err.message).to.match(/503/);
-      })
+      });
     });
 
     describe('other client error', function() {
@@ -523,8 +531,8 @@ describe('XML requests', function() {
       it('throws an EbayClientError', function() {
         expect(err).to.be.an.instanceOf(ebay.EbayClientError);
         expect(err.message).to.match(/Boo/);
-      })
+      });
 
     });
-  })
+  });
 });
