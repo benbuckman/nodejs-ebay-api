@@ -219,6 +219,10 @@ describe('XML requests', function() {
             'X-EBAY-SOA-SECURITY-TOKEN': 'super-secret',
             'X-EBAY-SOA-SERVICE-VERSION': '1.5.0'
           },
+          agentOptions: {
+            ciphers: 'ALL',
+            secureProtocol: 'TLSv1_method',
+          },
           body:
             '<?xml version="1.0" encoding="UTF-8"?>\n' +
             '<createUploadJobRequest xmlns="http://www.ebay.com/marketplace/services">\n' +
@@ -264,6 +268,10 @@ describe('XML requests', function() {
             'X-EBAY-SOA-SERVICE-NAME': 'FileTransferService',
             'X-EBAY-SOA-SECURITY-TOKEN': 'super-secret',
             'X-EBAY-SOA-SERVICE-VERSION': '1.1.0'
+          },
+          agentOptions: {
+            ciphers: 'ALL',
+            secureProtocol: 'TLSv1_method',
           },
           body:
             '<?xml version="1.0" encoding="UTF-8"?>\n' +
