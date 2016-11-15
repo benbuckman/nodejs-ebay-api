@@ -208,7 +208,8 @@ describe('XML requests', function() {
           headers: {
             'X-EBAY-SOA-OPERATION-NAME': 'createUploadJob',
             'X-EBAY-SOA-SERVICE-NAME': 'BulkDataExchangeService',
-            'X-EBAY-SOA-SECURITY-TOKEN': 'super-secret'
+            'X-EBAY-SOA-SECURITY-TOKEN': 'super-secret',
+            'X-EBAY-SOA-SERVICE-VERSION': '1.5.0'
           },
           body:
             '<?xml version="1.0" encoding="UTF-8"?>\n' +
@@ -253,7 +254,8 @@ describe('XML requests', function() {
           headers: {
             'X-EBAY-SOA-OPERATION-NAME': 'uploadFile',
             'X-EBAY-SOA-SERVICE-NAME': 'FileTransferService',
-            'X-EBAY-SOA-SECURITY-TOKEN': 'super-secret'
+            'X-EBAY-SOA-SECURITY-TOKEN': 'super-secret',
+            'X-EBAY-SOA-SERVICE-VERSION': '1.1.0'
           },
           body:
             '<?xml version="1.0" encoding="UTF-8"?>\n' +
