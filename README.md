@@ -151,6 +151,8 @@ This module uses the [debug](https://github.com/visionmedia/debug) module for in
 
 Run your app (or node REPL) with `DEBUG=ebay* ...` to see output. 
 
+You can test out this API at [RapidAPI](https://rapidapi.com/package/eBay/functions?utm_source=GitHubEbay&utm_medium=button)
+
 
 Enjoy!
 
