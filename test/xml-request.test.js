@@ -191,6 +191,105 @@ describe('XML requests', function() {
 
     });
 
+    describe('BulkDataExchange: createUploadJob (authenticated)', function () {
+      beforeEach('build request', function () {
+        xmlRequest({
+          serviceName: 'BulkDataExchange',
+          opType: 'createUploadJob',
+          sandbox: true,
+          authToken: 'super-secret',
+          raw: true,  // no parsing
+          params: {
+            fileType: 'XML',
+            uploadJobType: 'AddFixedPriceItem',
+            UUID: 'fancy-uuid'
+          }
+        }, function noop() {
+        });
+      });
+
+      it('initiated request with expected parameters', function () {
+        expect(request.post).to.have.been.calledOnce;
+
+        expect(request.post.lastCall.args[0]).to.deep.equal({
+          url: 'https://webservices.sandbox.ebay.com/BulkDataExchangeService',
+          headers: {
+            'X-EBAY-SOA-OPERATION-NAME': 'createUploadJob',
+            'X-EBAY-SOA-SERVICE-NAME': 'BulkDataExchangeService',
+            'X-EBAY-SOA-SECURITY-TOKEN': 'super-secret',
+            'X-EBAY-SOA-SERVICE-VERSION': '1.5.0'
+          },
+          agentOptions: {
+            ciphers: 'ALL',
+            secureProtocol: 'TLSv1_method',
+          },
+          body:
+            '<?xml version="1.0" encoding="UTF-8"?>\n' +
+            '<createUploadJobRequest xmlns="http://www.ebay.com/marketplace/services">\n' +
+            '    <RequesterCredentials>\n' +
+            '        <eBayAuthToken>super-secret</eBayAuthToken>\n' +
+            '    </RequesterCredentials>\n' +
+            '    <fileType>XML</fileType>\n' +
+            '    <uploadJobType>AddFixedPriceItem</uploadJobType>\n' +
+            '    <UUID>fancy-uuid</UUID>\n' +
+            '</createUploadJobRequest>'
+        });
+      });
+    });
+
+    describe('FileTransfer: uploadFile (authenticated)', function () {
+      beforeEach('build request', function () {
+        xmlRequest({
+          serviceName: 'FileTransfer',
+          opType: 'uploadFile',
+          sandbox: true,
+          authToken: 'super-secret',
+          raw: true,  // no parsing
+          params: {
+            fileAttachment: {
+              Data: "data-data-data",
+              Size: 77,
+            },
+            fileFormat: 'zip',
+            fileReferenceId: '12345',
+            taskReferenceId: '67890'
+          }
+        }, function noop() {
+        });
+      });
+
+      it('initiated request with expected parameters', function () {
+        expect(request.post).to.have.been.calledOnce;
+
+        expect(request.post.lastCall.args[0]).to.deep.equal({
+          url: 'https://storage.sandbox.ebay.com/FileTransferService',
+          headers: {
+            'X-EBAY-SOA-OPERATION-NAME': 'uploadFile',
+            'X-EBAY-SOA-SERVICE-NAME': 'FileTransferService',
+            'X-EBAY-SOA-SECURITY-TOKEN': 'super-secret',
+            'X-EBAY-SOA-SERVICE-VERSION': '1.1.0'
+          },
+          agentOptions: {
+            ciphers: 'ALL',
+            secureProtocol: 'TLSv1_method',
+          },
+          body:
+            '<?xml version="1.0" encoding="UTF-8"?>\n' +
+            '<uploadFileRequest xmlns="http://www.ebay.com/marketplace/services">\n' +
+            '    <RequesterCredentials>\n' +
+            '        <eBayAuthToken>super-secret</eBayAuthToken>\n' +
+            '    </RequesterCredentials>\n' +
+            '    <fileAttachment>\n' +
+            '        <Data>data-data-data</Data>\n' +
+            '        <Size>77</Size>\n' +
+            '    </fileAttachment>\n' +
+            '    <fileFormat>zip</fileFormat>\n' +
+            '    <fileReferenceId>12345</fileReferenceId>\n' +
+            '    <taskReferenceId>67890</taskReferenceId>\n' +
+            '</uploadFileRequest>'
+        });
+      });
+    });
 
     describe('nested params', function () {
       beforeEach('build request', function () {
