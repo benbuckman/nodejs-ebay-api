@@ -3,6 +3,8 @@ eBay API client for Node.js
 
 [![Build Status](https://travis-ci.org/benbuckman/nodejs-ebay-api.svg)](https://travis-ci.org/benbuckman/nodejs-ebay-api)
 
+**I am not maintaining this module anymore. If anyone has an active fork and is interested in taking this over, please let me know and I will transfer the NPM project.**
+
 ## Intro
 
 This module aims to support all of eBay's APIs (Trading, Shopping, Finding, Merchandising, etc),
