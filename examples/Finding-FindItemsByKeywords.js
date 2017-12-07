@@ -27,9 +27,10 @@ var params = {
 ebay.xmlRequest({
     serviceName: 'Finding',
     opType: 'findItemsByKeywords',
-    appId: '......................',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
+    appId: '..........',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
     params: params,
-    parser: ebay.parseResponseJson    // (default)
+    parser: ebay.parseResponseJson,    // (default),
+    country: 'US'
   },
   // gets all the items together in a merged array
   function itemsCallback(error, itemsResponse) {

@@ -1,11 +1,18 @@
 {
-  "name": "ebay-api",
-  "description": "eBay API Client",
+  "name": "ebay-api-international",
+  "description": "eBay API Client - international version",
   "version": "1.13.1",
-  "homepage": "https://github.com/benbuckman/nodejs-ebay-api",
+  "homepage": "https://github.com/tobycaulk/nodejs-ebay-api",
   "author": "Ben Buckman",
+  "contributors": [
+    {
+      "name": "Toby Caulk",
+      "email": "tobycaulk@gmail.com",
+      "url": "https://twitter.com/TobySimone"
+    }
+  ],
   "repository": {
-    "url": "git://github.com/benbuckman/nodejs-ebay-api.git"
+    "url": "git://github.com/tobycaulk/nodejs-ebay-api"
   },
   "main": "index.js",
   "dependencies": {
