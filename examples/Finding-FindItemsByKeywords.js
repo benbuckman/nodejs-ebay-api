@@ -27,7 +27,7 @@ var params = {
 ebay.xmlRequest({
     serviceName: 'Finding',
     opType: 'findItemsByKeywords',
-    appId: 'TobyCaul-Flippr-PRD-05d7504c4-b8181fc8',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
+    appId: '..........',      // FILL IN YOUR OWN APP KEY, GET ONE HERE: https://publisher.ebaypartnernetwork.com/PublisherToolsAPI
     params: params,
     parser: ebay.parseResponseJson,    // (default),
     country: 'US'
